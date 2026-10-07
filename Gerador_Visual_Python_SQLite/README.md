@@ -46,7 +46,7 @@ cria novos seletores sem um limite fixo. Depois disso, escolha a operação dese
 - Dividir
 - Média
 - Porcentagem
-- Resto da divisão
+- Resto da divisão      
 - Potência
 - Mínimo
 - Máximo
