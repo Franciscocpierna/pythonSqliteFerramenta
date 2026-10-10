@@ -3,14 +3,20 @@ import re
 import hashlib
 import sqlite3
 import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext
+import random
+import secrets
+import string
+import time
+import calendar
+from datetime import datetime, date
+from tkinter import ttk, messagebox, scrolledtext, filedialog
 
 
 class AplicacaoGerada(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title('Novo Projeto')
-        self.geometry('1000x780')
+        self.title('S5Proj2CadastroProdutos')
+        self.geometry('1000x754')
         self.minsize(820, 560)
         self.cor_fundo = '#eef2f7'
         self.cor_cartao = '#ffffff'
@@ -21,7 +27,7 @@ class AplicacaoGerada(tk.Tk):
         self.usuario_logado = None
         self.nome_usuario_logado = ''
         self.nome_tela_login = 'Tela Principal'
-        self._metadados_tabelas = {'Tela Principal': {'tabela': 'registros', 'pk': 'id', 'colunas': ['produto', 'codigo', 'categoria', 'preco', 'quantidade', 'fornecedor'], 'titulos': {'produto': 'Produto', 'codigo': 'Codigo', 'categoria': 'Categoria', 'preco': 'Preco', 'quantidade': 'Quantidade', 'fornecedor': 'Fornecedor'}}}
+        self._metadados_tabelas = {'Tela Principal': {'tabela': 'registros', 'pk': 'id', 'colunas': ['produto', 'codigo', 'preco', 'fornecedor', 'categoria', 'quantidade'], 'titulos': {'produto': 'Produto', 'codigo': 'Codigo', 'preco': 'Preco', 'fornecedor': 'Fornecedor', 'categoria': 'Categoria', 'quantidade': 'Quantidade'}}}
         self._configurar_estilos()
         self.conexao = sqlite3.connect('dados_sistema.db')
 
@@ -505,6 +511,7 @@ class Tela1_TelaPrincipal(ttk.Frame):
         self._id_selecionado = None
         self._criar_banco()
         self._criar_interface()
+        self._atualizar_contadores()
         self.carregar_dados()
 
 
@@ -545,85 +552,85 @@ class Tela1_TelaPrincipal(ttk.Frame):
             pass
 
     def _criar_banco(self):
-        self.app.conexao.execute('CREATE TABLE IF NOT EXISTS registros (id INTEGER PRIMARY KEY AUTOINCREMENT, produto TEXT, codigo TEXT, categoria TEXT, preco TEXT, quantidade INTEGER, fornecedor TEXT)')
+        self.app.conexao.execute('CREATE TABLE IF NOT EXISTS registros (id INTEGER PRIMARY KEY AUTOINCREMENT, produto TEXT, codigo TEXT, preco TEXT, fornecedor TEXT, categoria TEXT, quantidade INTEGER)')
         colunas_existentes = {linha[1] for linha in self.app.conexao.execute('PRAGMA table_info(registros)').fetchall()}
         if 'produto' not in colunas_existentes:
             self.app.conexao.execute('ALTER TABLE registros ADD COLUMN produto TEXT')
         if 'codigo' not in colunas_existentes:
             self.app.conexao.execute('ALTER TABLE registros ADD COLUMN codigo TEXT')
-        if 'categoria' not in colunas_existentes:
-            self.app.conexao.execute('ALTER TABLE registros ADD COLUMN categoria TEXT')
         if 'preco' not in colunas_existentes:
             self.app.conexao.execute('ALTER TABLE registros ADD COLUMN preco TEXT')
-        if 'quantidade' not in colunas_existentes:
-            self.app.conexao.execute('ALTER TABLE registros ADD COLUMN quantidade INTEGER')
         if 'fornecedor' not in colunas_existentes:
             self.app.conexao.execute('ALTER TABLE registros ADD COLUMN fornecedor TEXT')
+        if 'categoria' not in colunas_existentes:
+            self.app.conexao.execute('ALTER TABLE registros ADD COLUMN categoria TEXT')
+        if 'quantidade' not in colunas_existentes:
+            self.app.conexao.execute('ALTER TABLE registros ADD COLUMN quantidade INTEGER')
         self.app.conexao.commit()
 
     def _criar_interface(self):
-        self._criar_area_rolavel(1000, 700)
-        self.label_1 = ttk.Label(self.area, text='Cadastro de Produtos', style=self.app._estilo_componente('Componentef3a7ffe5ef.TLabel', 'TLabel', ('Segoe UI', 24, 'bold'), '', ''))
-        self.label_1.place(x=33, y=9, width=488, height=48)
-        self.label_2 = ttk.Label(self.area, text='Preencha os campos e use os botões abaixo.', style='TLabel')
-        self.label_2.place(x=39, y=65, width=344, height=30)
+        self._criar_area_rolavel(1000, 674)
+        self.label_1 = ttk.Label(self.area, text='Cadastro de Produtos', style=self.app._estilo_componente('Componentea474e585a7.TLabel', 'TLabel', ('Arial', 16), '', ''))
+        self.label_1.place(x=0, y=5, width=267, height=30)
+        self.label_2 = ttk.Label(self.area, text='preencha os campos', style='TLabel')
+        self.label_2.place(x=0, y=47, width=180, height=30)
         self.label_3 = ttk.Label(self.area, text='Produto', style='TLabel')
-        self.label_3.place(x=39, y=145, width=180, height=30)
+        self.label_3.place(x=0, y=123, width=180, height=30)
         self.var_produto = tk.StringVar()
         self.produto = ttk.Entry(self.area, textvariable=self.var_produto)
-        self.produto.place(x=141, y=134, width=285, height=34)
-        self.label_4 = ttk.Label(self.area, text='Código', style='TLabel')
-        self.label_4.place(x=475, y=134, width=180, height=30)
+        self.produto.place(x=83, y=121, width=220, height=34)
+        self.label_4 = ttk.Label(self.area, text='Codigo', style='TLabel')
+        self.label_4.place(x=327, y=121, width=180, height=30)
         self.var_codigo = tk.StringVar()
         self.codigo = ttk.Entry(self.area, textvariable=self.var_codigo)
-        self.codigo.place(x=557, y=134, width=248, height=34)
-        self.label_5 = ttk.Label(self.area, text='Categoria', style='TLabel')
-        self.label_5.place(x=33, y=201, width=180, height=30)
-        self.var_categoria = tk.StringVar()
-        self.categoria = ttk.Combobox(self.area, textvariable=self.var_categoria, values=['Alimentos', 'Casa', 'Informática', 'Outros'], state='readonly')
-        self.categoria.place(x=141, y=197, width=282, height=34)
-        self.label_6 = ttk.Label(self.area, text='Preço', style='TLabel')
-        self.label_6.place(x=475, y=197, width=180, height=30)
+        self.codigo.place(x=417, y=121, width=220, height=34)
+        self.label_3_copia = ttk.Label(self.area, text='Categoria', style='TLabel')
+        self.label_3_copia.place(x=0, y=166, width=180, height=30)
+        self.label_3_copia_copia = ttk.Label(self.area, text='Preço', style='TLabel')
+        self.label_3_copia_copia.place(x=327, y=166, width=180, height=30)
         self.var_preco = tk.StringVar()
         self.preco = ttk.Entry(self.area, textvariable=self.var_preco)
-        self.preco.place(x=557, y=193, width=247, height=34)
-        self.lbl_q = ttk.Label(self.area, text='Quantidade', style='TLabel')
-        self.lbl_q.place(x=31, y=261, width=180, height=30)
-        self.var_quantidade = tk.StringVar(value='0')
-        self.quantidade = ttk.Spinbox(self.area, from_=0, to=999999, textvariable=self.var_quantidade)
-        self.quantidade.place(x=141, y=257, width=282, height=34)
-        self.label_8 = ttk.Label(self.area, text='Fornecedor', style='TLabel')
-        self.label_8.place(x=475, y=257, width=180, height=30)
+        self.preco.place(x=417, y=166, width=220, height=34)
+        self.label_3_copia_copia_2 = ttk.Label(self.area, text='Quantidade', style='TLabel')
+        self.label_3_copia_copia_2.place(x=0, y=213, width=180, height=30)
+        self.label_3_copia_copia_2_copia = ttk.Label(self.area, text='Fornecedor', style='TLabel')
+        self.label_3_copia_copia_2_copia.place(x=327, y=211, width=180, height=30)
         self.var_fornecedor = tk.StringVar()
         self.fornecedor = ttk.Entry(self.area, textvariable=self.var_fornecedor)
-        self.fornecedor.place(x=557, y=253, width=244, height=34)
+        self.fornecedor.place(x=417, y=211, width=220, height=34)
         self.btn_cadastrar = ttk.Button(self.area, text='Cadastrar', command=lambda: self.salvar_registro(['produto', 'codigo', 'categoria', 'preco', 'quantidade', 'fornecedor']))
-        self.btn_cadastrar.place(x=31, y=316, width=130, height=38)
+        self.btn_cadastrar.place(x=0, y=288, width=130, height=38)
         self.btn_atualizar = ttk.Button(self.area, text='Atualizar', command=lambda: self.atualizar_registro(['produto', 'codigo', 'categoria', 'preco', 'quantidade', 'fornecedor']))
-        self.btn_atualizar.place(x=174, y=316, width=130, height=38)
+        self.btn_atualizar.place(x=153, y=288, width=130, height=38)
         self.btn_excluir = ttk.Button(self.area, text='Excluir', command=self.excluir_registro)
-        self.btn_excluir.place(x=318, y=316, width=130, height=38)
-        self.btn_limpar = ttk.Button(self.area, text='Limpar', command=lambda: self.limpar_campos(['produto', 'codigo', 'categoria', 'preco', 'quantidade', 'fornecedor']))
-        self.btn_limpar.place(x=464, y=316, width=130, height=38)
-        self.tabela_dados = ttk.Treeview(self.area, columns=['produto', 'codigo', 'categoria', 'preco', 'quantidade', 'fornecedor'], show='headings')
+        self.btn_excluir.place(x=303, y=288, width=130, height=38)
+        self.btn_limpar = ttk.Button(self.area, text='Limpar', command=lambda: self.limpar_campos([]))
+        self.btn_limpar.place(x=452, y=288, width=130, height=38)
+        self.var_categoria = tk.StringVar()
+        self.categoria = ttk.Combobox(self.area, textvariable=self.var_categoria, values=['Alimentos', 'Casa', 'Informatica', 'Outros'], state='readonly')
+        self.categoria.place(x=83, y=166, width=220, height=34)
+        self.var_quantidade = tk.StringVar(value='0')
+        self.quantidade = ttk.Spinbox(self.area, from_=0, to=999999, textvariable=self.var_quantidade)
+        self.quantidade.place(x=84, y=211, width=219, height=34)
+        self.tabela_dados = ttk.Treeview(self.area, columns=['produto', 'codigo', 'preco', 'fornecedor', 'categoria', 'quantidade'], show='headings')
         self.tabela_dados.heading('produto', text='Produto')
         self.tabela_dados.column('produto', width=140, anchor='w')
         self.tabela_dados.heading('codigo', text='Codigo')
         self.tabela_dados.column('codigo', width=140, anchor='w')
-        self.tabela_dados.heading('categoria', text='Categoria')
-        self.tabela_dados.column('categoria', width=140, anchor='w')
         self.tabela_dados.heading('preco', text='Preco')
         self.tabela_dados.column('preco', width=140, anchor='w')
-        self.tabela_dados.heading('quantidade', text='Quantidade')
-        self.tabela_dados.column('quantidade', width=140, anchor='w')
         self.tabela_dados.heading('fornecedor', text='Fornecedor')
         self.tabela_dados.column('fornecedor', width=140, anchor='w')
-        self.tabela_dados.place(x=27, y=428, width=792, height=232)
+        self.tabela_dados.heading('categoria', text='Categoria')
+        self.tabela_dados.column('categoria', width=140, anchor='w')
+        self.tabela_dados.heading('quantidade', text='Quantidade')
+        self.tabela_dados.column('quantidade', width=140, anchor='w')
+        self.tabela_dados.place(x=6, y=410, width=842, height=230)
         self.tabela_dados.bind('<<TreeviewSelect>>', self.preencher_formulario)
-        self.var_filtro_1 = tk.StringVar()
-        self.filtro_1 = ttk.Entry(self.area, textvariable=self.var_filtro_1)
-        self.filtro_1.place(x=27, y=372, width=568, height=34)
-        self.filtro_1.bind('<KeyRelease>', lambda e: self.aplicar_filtro())
+        self.var_filtro = tk.StringVar()
+        self.filtro = ttk.Entry(self.area, textvariable=self.var_filtro)
+        self.filtro.place(x=6, y=342, width=565, height=34)
+        self.filtro.bind('<KeyRelease>', lambda e: self.aplicar_filtro())
 
     def _valor_componente(self, nome):
         variavel = getattr(self, f'var_{nome}', None)
@@ -659,6 +666,190 @@ class Tela1_TelaPrincipal(ttk.Frame):
             return True
         return False
 
+    def _atualizar_contadores(self):
+        pass
+
+    def exportar_dados_excel(self, alvos=None):
+        try:
+            from openpyxl import Workbook
+        except ImportError:
+            messagebox.showerror('Excel', 'Para exportar arquivos .xlsx, instale a biblioteca openpyxl com: pip install openpyxl')
+            return
+        nomes = list(alvos or [])
+        if not nomes:
+            nomes = [nome for nome, widget in self.__dict__.items() if isinstance(widget, (ttk.Treeview, tk.Listbox))]
+        fontes = [(nome, getattr(self, nome, None)) for nome in nomes]
+        fontes = [(nome, widget) for nome, widget in fontes if isinstance(widget, (ttk.Treeview, tk.Listbox))]
+        if not fontes:
+            messagebox.showwarning('Excel', 'Selecione uma Treeview ou uma Listbox nos Campos da ação.')
+            return
+        caminho = filedialog.asksaveasfilename(title='Exportar para Excel', defaultextension='.xlsx', filetypes=[('Arquivo do Excel', '*.xlsx')])
+        if not caminho:
+            return
+        wb = Workbook()
+        wb.remove(wb.active)
+        def valor_seguro(valor):
+            if isinstance(valor, str) and valor[:1] in ('=', '+', '-', '@'):
+                return "'" + valor
+            return valor
+        for indice, (nome, widget) in enumerate(fontes, 1):
+            titulo = re.sub(r'[:\\/?*\[\]]', '_', str(nome))[:31] or f'Dados{indice}'
+            base = titulo
+            contador = 2
+            while titulo in wb.sheetnames:
+                sufixo = f'_{contador}'
+                titulo = base[:31-len(sufixo)] + sufixo
+                contador += 1
+            ws = wb.create_sheet(titulo)
+            if isinstance(widget, ttk.Treeview):
+                colunas = list(widget['columns'])
+                cabecalhos = [widget.heading(coluna, 'text') or str(coluna) for coluna in colunas]
+                ws.append(cabecalhos)
+                for item in widget.get_children():
+                    ws.append([valor_seguro(v) for v in widget.item(item, 'values')])
+            else:
+                ws.append(['Item'])
+                for item in widget.get(0, tk.END):
+                    ws.append([valor_seguro(item)])
+            for coluna in ws.columns:
+                letra = coluna[0].column_letter
+                maior = max((len(str(celula.value or '')) for celula in coluna), default=10)
+                ws.column_dimensions[letra].width = min(max(maior + 2, 12), 60)
+        try:
+            wb.save(caminho)
+        except OSError as erro:
+            messagebox.showerror('Excel', f'Não foi possível salvar o arquivo: {erro}')
+            return
+        messagebox.showinfo('Excel', 'Dados exportados para o Excel com sucesso!')
+
+    def _formatar_tempo(self, segundos):
+        segundos = max(0.0, float(segundos))
+        horas = int(segundos // 3600)
+        minutos = int((segundos % 3600) // 60)
+        resto = segundos % 60
+        return f'{horas:02d}:{minutos:02d}:{resto:04.1f}'
+
+    def cronometro_iniciar(self, destino):
+        if getattr(self, '_cronometro_rodando', False):
+            return
+        self._cronometro_rodando = True
+        self._cronometro_acumulado = float(getattr(self, '_cronometro_acumulado', 0.0))
+        self._cronometro_inicio = time.perf_counter()
+        self._cronometro_tick(destino)
+
+    def _cronometro_tick(self, destino):
+        if not getattr(self, '_cronometro_rodando', False):
+            return
+        atual = self._cronometro_acumulado + (time.perf_counter() - self._cronometro_inicio)
+        self._definir_valor_componente(destino, self._formatar_tempo(atual))
+        self.after(100, lambda: self._cronometro_tick(destino))
+
+    def cronometro_pausar(self, destino):
+        if getattr(self, '_cronometro_rodando', False):
+            self._cronometro_acumulado += time.perf_counter() - self._cronometro_inicio
+        self._cronometro_rodando = False
+        self._definir_valor_componente(destino, self._formatar_tempo(getattr(self, '_cronometro_acumulado', 0.0)))
+
+    def cronometro_zerar(self, destino):
+        self._cronometro_rodando = False
+        self._cronometro_acumulado = 0.0
+        self._definir_valor_componente(destino, '00:00:00.0')
+
+    def temporizador_iniciar(self, origem, destino):
+        if getattr(self, '_temporizador_rodando', False):
+            return
+        try:
+            valor = int(float(str(self._valor_componente(origem)).replace(',', '.')))
+        except (TypeError, ValueError):
+            valor = 0
+        if valor <= 0:
+            messagebox.showwarning('Temporizador', 'Informe uma quantidade de segundos maior que zero.')
+            return
+        self._temporizador_restante = valor
+        self._temporizador_rodando = True
+        self._temporizador_tick(destino)
+
+    def _temporizador_tick(self, destino):
+        if not getattr(self, '_temporizador_rodando', False):
+            return
+        restante = int(getattr(self, '_temporizador_restante', 0))
+        self._definir_valor_componente(destino, self._formatar_tempo(restante))
+        if restante <= 0:
+            self._temporizador_rodando = False
+            messagebox.showinfo('Temporizador', 'Tempo encerrado!')
+            return
+        self._temporizador_restante = restante - 1
+        self.after(1000, lambda: self._temporizador_tick(destino))
+
+    def temporizador_pausar(self, destino):
+        self._temporizador_rodando = False
+        self._definir_valor_componente(destino, self._formatar_tempo(getattr(self, '_temporizador_restante', 0)))
+
+    def temporizador_zerar(self, destino):
+        self._temporizador_rodando = False
+        self._temporizador_restante = 0
+        self._definir_valor_componente(destino, '00:00:00.0')
+
+    def gerar_senha_segura(self, campo_tamanho, campo_simbolos, destino):
+        try:
+            tamanho = int(float(str(self._valor_componente(campo_tamanho)).replace(',', '.')))
+        except (TypeError, ValueError):
+            tamanho = 12
+        tamanho = min(max(tamanho, 8), 128)
+        usar_simbolos = bool(self._valor_componente(campo_simbolos)) if campo_simbolos else True
+        alfabeto = string.ascii_letters + string.digits
+        if usar_simbolos:
+            alfabeto += '!@#$%&*_-+=?'
+        senha = ''.join(secrets.choice(alfabeto) for _ in range(tamanho))
+        self._definir_valor_componente(destino, senha)
+
+    def calcular_idade_completa(self, origem, destino):
+        texto = str(self._valor_componente(origem)).strip()
+        try:
+            nascimento = datetime.strptime(texto, '%d/%m/%Y').date()
+        except ValueError:
+            messagebox.showwarning('Idade', 'Informe a data de nascimento no formato dd/mm/aaaa.')
+            return
+        hoje = date.today()
+        if nascimento > hoje:
+            messagebox.showwarning('Idade', 'A data de nascimento não pode estar no futuro.')
+            return
+        anos = hoje.year - nascimento.year
+        meses = hoje.month - nascimento.month
+        dias = hoje.day - nascimento.day
+        if dias < 0:
+            meses -= 1
+            mes_anterior = hoje.month - 1 or 12
+            ano_mes_anterior = hoje.year if hoje.month > 1 else hoje.year - 1
+            dias += calendar.monthrange(ano_mes_anterior, mes_anterior)[1]
+        if meses < 0:
+            anos -= 1
+            meses += 12
+        self._definir_valor_componente(destino, f'{anos} anos, {meses} meses e {dias} dias')
+
+    def sortear_nome(self, origem, destino):
+        widget = getattr(self, origem, None)
+        if isinstance(widget, tk.Listbox):
+            nomes = [str(x).strip() for x in widget.get(0, tk.END) if str(x).strip()]
+        else:
+            nomes = [x.strip() for x in str(self._valor_componente(origem)).splitlines() if x.strip()]
+        if not nomes:
+            messagebox.showwarning('Sorteio', 'A lista de nomes está vazia.')
+            return
+        self._definir_valor_componente(destino, random.choice(nomes))
+
+    def gerar_numeros_sorteio(self, origem, destino):
+        try:
+            quantidade = int(float(str(self._valor_componente(origem)).replace(',', '.')))
+        except (TypeError, ValueError):
+            quantidade = 6
+        if quantidade <= 0:
+            quantidade = 6
+        quantidade = min(quantidade, 60)
+        numeros = sorted(random.sample(range(1, 61), quantidade))
+        self._definir_valor_componente(destino, [f'{numero:02d}' for numero in numeros])
+        self._atualizar_contadores()
+
     def validar_formulario(self):
         return True
 
@@ -692,8 +883,8 @@ class Tela1_TelaPrincipal(ttk.Frame):
     def salvar_registro(self, selecionados=None):
         if not self.validar_formulario():
             return
-        mapa = {'produto': 'produto', 'codigo': 'codigo', 'categoria': 'categoria', 'preco': 'preco', 'quantidade': 'quantidade', 'fornecedor': 'fornecedor'}
-        escolhidos = list(selecionados or ['produto', 'codigo', 'categoria', 'preco', 'quantidade', 'fornecedor'])
+        mapa = {'produto': 'produto', 'codigo': 'codigo', 'preco': 'preco', 'fornecedor': 'fornecedor', 'categoria': 'categoria', 'quantidade': 'quantidade'}
+        escolhidos = list(selecionados or ['produto', 'codigo', 'preco', 'fornecedor', 'categoria', 'quantidade'])
         escolhidos = [nome for nome in escolhidos if nome in mapa]
         if not escolhidos:
             messagebox.showwarning('SQLite', 'Selecione pelo menos um campo para cadastrar.')
@@ -721,22 +912,24 @@ class Tela1_TelaPrincipal(ttk.Frame):
         tabela = self.tabela_dados
         for item in tabela.get_children():
             tabela.delete(item)
-        linhas = self.app.conexao.execute('SELECT id,produto,codigo,categoria,preco,quantidade,fornecedor FROM registros ORDER BY id DESC').fetchall()
+        linhas = self.app.conexao.execute('SELECT id,produto,codigo,preco,fornecedor,categoria,quantidade FROM registros ORDER BY id DESC').fetchall()
         for linha in linhas:
             tabela.insert('', tk.END, iid=str(linha[0]), values=linha[1:])
+        self._atualizar_contadores()
 
     def aplicar_filtro(self):
-        termo = self.var_filtro_1.get().strip()
+        termo = self.var_filtro.get().strip()
         tabela = self.tabela_dados
         for item in tabela.get_children():
             tabela.delete(item)
         if termo:
-            sql = 'SELECT id,produto,codigo,categoria,preco,quantidade,fornecedor FROM registros WHERE CAST(produto AS TEXT) LIKE ? ORDER BY id DESC'
+            sql = 'SELECT id,produto,codigo,preco,fornecedor,categoria,quantidade FROM registros WHERE CAST(produto AS TEXT) LIKE ? ORDER BY id DESC'
             linhas = self.app.conexao.execute(sql, (f'%{termo}%',)).fetchall()
         else:
-            linhas = self.app.conexao.execute('SELECT id,produto,codigo,categoria,preco,quantidade,fornecedor FROM registros ORDER BY id DESC').fetchall()
+            linhas = self.app.conexao.execute('SELECT id,produto,codigo,preco,fornecedor,categoria,quantidade FROM registros ORDER BY id DESC').fetchall()
         for linha in linhas:
             tabela.insert('', tk.END, iid=str(linha[0]), values=linha[1:])
+        self._atualizar_contadores()
 
     def preencher_formulario(self, event=None):
         selecionado = self.tabela_dados.selection()
@@ -751,13 +944,13 @@ class Tela1_TelaPrincipal(ttk.Frame):
         if len(valores) > 1:
             self._definir_valor_componente('codigo', valores[1])
         if len(valores) > 2:
-            self._definir_valor_componente('categoria', valores[2])
+            self._definir_valor_componente('preco', valores[2])
         if len(valores) > 3:
-            self._definir_valor_componente('preco', valores[3])
+            self._definir_valor_componente('fornecedor', valores[3])
         if len(valores) > 4:
-            self._definir_valor_componente('quantidade', valores[4])
+            self._definir_valor_componente('categoria', valores[4])
         if len(valores) > 5:
-            self._definir_valor_componente('fornecedor', valores[5])
+            self._definir_valor_componente('quantidade', valores[5])
 
     def atualizar_registro(self, selecionados=None):
         if self._id_selecionado is None:
@@ -765,8 +958,8 @@ class Tela1_TelaPrincipal(ttk.Frame):
             return
         if not self.validar_formulario():
             return
-        mapa = {'produto': 'produto', 'codigo': 'codigo', 'categoria': 'categoria', 'preco': 'preco', 'quantidade': 'quantidade', 'fornecedor': 'fornecedor'}
-        escolhidos = list(selecionados or ['produto', 'codigo', 'categoria', 'preco', 'quantidade', 'fornecedor'])
+        mapa = {'produto': 'produto', 'codigo': 'codigo', 'preco': 'preco', 'fornecedor': 'fornecedor', 'categoria': 'categoria', 'quantidade': 'quantidade'}
+        escolhidos = list(selecionados or ['produto', 'codigo', 'preco', 'fornecedor', 'categoria', 'quantidade'])
         escolhidos = [nome for nome in escolhidos if nome in mapa]
         if not escolhidos:
             messagebox.showwarning('SQLite', 'Selecione os campos que serão atualizados.')
@@ -810,7 +1003,7 @@ class Tela1_TelaPrincipal(ttk.Frame):
 
     def limpar_campos(self, selecionados=None):
         self._id_selecionado = None
-        nomes = list(selecionados or ['produto', 'codigo', 'categoria', 'preco', 'quantidade', 'fornecedor'])
+        nomes = list(selecionados or ['produto', 'codigo', 'preco', 'fornecedor', 'categoria', 'quantidade'])
         for nome in nomes:
             variavel = getattr(self, f'var_{nome}', None)
             if variavel is not None:
