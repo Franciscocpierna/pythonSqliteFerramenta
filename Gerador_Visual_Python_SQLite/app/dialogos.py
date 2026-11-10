@@ -1889,7 +1889,6 @@ class DialogoProjetos(tk.Toplevel):
         # `,` = separa argumentos, parâmetros, propriedades ou elementos desta estrutura.
         # `text` = parâmetro que define o texto exibido pelo componente.
         # `=` = operador de atribuição utilizado para armazenar ou associar o valor da direita ao elemento da esquerda.
-        # `Atualizado` = texto literal utilizado nesta instrução.
         # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
         self.tree.heading("data", text="Atualizado")
 

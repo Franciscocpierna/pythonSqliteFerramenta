@@ -9,6 +9,7 @@ from __future__ import annotations
 # `import` = importa um módulo ou recurso para que possa ser utilizado neste arquivo.
 # `json` = módulo utilizado para converter dados entre objetos Python e o formato JSON.
 import json
+from difflib import SequenceMatcher
 
 # Importa um ou mais módulos para disponibilizar seus recursos neste arquivo.
 # `import` = importa um módulo ou recurso para que possa ser utilizado neste arquivo.
@@ -108,6 +109,70 @@ def _normalizar(texto: str) -> str:
 # `campo` = texto literal utilizado nesta instrução.
 # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
 # `->` = indica a anotação do tipo de valor retornado pela função ou método.
+PALAVRAS_FRACAS_CATALOGO = {
+    "a", "as", "o", "os", "de", "da", "das", "do", "dos", "e", "em", "no", "na", "nos", "nas",
+    "com", "para", "por", "um", "uma", "ao", "aos", "dados", "simples",
+}
+
+ALIASES_PROJETOS_CATALOGO = {
+    "rascunho outlook": 45, "rascunhos outlook": 45, "email outlook": 45, "emails outlook": 45,
+    "quebrar planilha por coluna": 46, "quebra planilha por coluna": 46, "quebrar excel por coluna": 46,
+    "quebrar varias abas": 47, "canvas desenho": 41, "area de desenho": 41,
+    "exportar listbox excel": 43, "exportar treeview excel": 44, "sequencia numerica lista": 50,
+    "treeview personalizada": 51, "campos obrigatorios bloqueados": 52, "contador palavras caracteres": 53,
+    "localizar substituir texto": 54, "editor txt": 55, "intervalo entre datas": 56,
+    "organizador lista": 57, "importar csv treeview": 58, "estatisticas lista numerica": 59,
+    "conversor texto": 60, "calendario mensal": 61, "forca senha": 62,
+}
+
+def _tokens_catalogo(texto: str):
+    normal = _normalizar(texto)
+    return [item for item in re.findall(r"[a-z0-9]+", normal) if len(item) > 1 and item not in PALAVRAS_FRACAS_CATALOGO]
+
+def _projeto_catalogo_por_prompt(descricao: str):
+    """Reconhece projetos prontos por número, nome ou intenção funcional."""
+    from .projetos_30 import PROJETOS_30, obter_projeto_30
+
+    normal = _normalizar(descricao)
+    explicito = re.search(r"\bprojeto\s*(?:numero|n|nº)?\s*(\d{1,2})\b", normal)
+    if explicito:
+        numero = int(explicito.group(1))
+        if 1 <= numero <= len(PROJETOS_30):
+            return obter_projeto_30(numero - 1), numero, PROJETOS_30[numero - 1]["nome"]
+
+    tokens_pedido = set(_tokens_catalogo(descricao))
+    for alias, numero in ALIASES_PROJETOS_CATALOGO.items():
+        tokens_alias = set(_tokens_catalogo(alias))
+        if tokens_alias and tokens_alias.issubset(tokens_pedido) and 1 <= numero <= len(PROJETOS_30):
+            return obter_projeto_30(numero - 1), numero, PROJETOS_30[numero - 1]["nome"]
+
+    melhor = None
+    melhor_score = 0.0
+    quantidade_palavras = len(normal.split())
+    pede_modelo_pronto = bool(re.search(r"\b(projeto|exemplo|modelo)\b", normal))
+
+    for indice, item in enumerate(PROJETOS_30, 1):
+        nome = item["nome"]
+        nome_normal = _normalizar(nome)
+        tokens_nome = set(_tokens_catalogo(nome))
+        if not tokens_nome:
+            continue
+        if nome_normal in normal:
+            score = 1.0
+        else:
+            comuns = tokens_nome & tokens_pedido
+            cobertura = len(comuns) / max(1, len(tokens_nome))
+            similaridade = SequenceMatcher(None, nome_normal, normal).ratio()
+            score = cobertura * 0.78 + similaridade * 0.22
+        if indice in {1, 2} and not pede_modelo_pronto and quantidade_palavras > 7:
+            continue
+        minimo = 0.78 if len(tokens_nome) >= 2 else 0.92
+        if score >= minimo and score > melhor_score:
+            melhor = (obter_projeto_30(indice - 1), indice, nome)
+            melhor_score = score
+    return melhor
+
+
 def _slug(texto: str, padrao="campo") -> str:
 
     # Armazena ou associa em `texto` o valor ou resultado definido nesta linha.
@@ -1345,6 +1410,35 @@ def _campo_def(nome: str, rotulo: str | None = None, **extras):
     # `base` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a base.
     return base
 
+DOMINIOS_INTELIGENTES = {
+    "escola": ["Alunos", "Cursos", "Matrículas"],
+    "colegio": ["Alunos", "Cursos", "Matrículas"],
+    "educacional": ["Alunos", "Cursos", "Matrículas"],
+    "oficina": ["Clientes", "Veículos", "Ordens de Serviço"],
+    "mecanica": ["Clientes", "Veículos", "Ordens de Serviço"],
+    "clinica": ["Pacientes", "Médicos", "Consultas"],
+    "hospital": ["Pacientes", "Médicos", "Consultas"],
+    "loja": ["Clientes", "Produtos", "Vendas"],
+    "comercio": ["Clientes", "Produtos", "Vendas"],
+    "biblioteca": ["Leitores", "Livros", "Empréstimos"],
+    "restaurante": ["Clientes", "Produtos", "Pedidos"],
+    "rh": ["Funcionários", "Cargos", "Férias"],
+    "recursos humanos": ["Funcionários", "Cargos", "Férias"],
+}
+
+MODULOS_INTELIGENTES = {
+    "Alunos": ["nome", "cpf", "data_nascimento", "telefone", "email", "curso", "status"],
+    "Cursos": ["nome", "categoria", "carga_horaria", "valor", "status"],
+    "Matrículas": ["aluno", "curso", "data", "status", "observacoes"],
+    "Veículos": ["cliente", "placa", "modelo", "marca", "ano", "status"],
+    "Ordens de Serviço": ["cliente", "veiculo", "data", "descricao", "valor", "status", "observacoes"],
+    "Leitores": ["nome", "cpf", "telefone", "email", "status"],
+    "Livros": ["titulo", "autor", "categoria", "codigo", "status"],
+    "Empréstimos": ["leitor", "livro", "data", "data_devolucao", "status"],
+    "Cargos": ["nome", "descricao", "salario", "status"],
+    "Férias": ["funcionario", "data_inicio", "data_fim", "status", "observacoes"],
+}
+
 # Define a rotina `_detectar_modulos`, responsável por executar a lógica relacionada a detectar modulos.
 # `def` = define uma nova função ou um novo método.
 # `_detectar_modulos` = função, método ou classe chamada para executar a operação relacionada a detectar modulos.
@@ -1363,6 +1457,13 @@ def _detectar_modulos(texto: str):
     # `texto` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a texto.
     # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
     normal = _normalizar(texto)
+
+    # Entende pedidos em que o usuário informa apenas o ramo do sistema.
+    for dominio, modulos_dominio in DOMINIOS_INTELIGENTES.items():
+        if re.search(rf"\b{re.escape(_normalizar(dominio))}\b", normal):
+            # Telas informadas explicitamente continuam tendo prioridade.
+            if not re.search(r"\b(tela|telas|modulo|modulos)\b", normal):
+                return list(modulos_dominio)
 
     # Define a rotina `converter_lista`, responsável por executar a lógica relacionada a converter lista.
     # `def` = define uma nova função ou um novo método.
@@ -2371,7 +2472,7 @@ def _defs_modulo(nome_modulo: str, texto: str):
     # `(` = abre a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
     # `nome_modulo` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a nome modulo.
     # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
-    base = MODULOS.get(nome_modulo)
+    base = MODULOS.get(nome_modulo) or MODULOS_INTELIGENTES.get(nome_modulo)
 
     # Verifica a condição informada e executa o bloco seguinte somente quando ela for verdadeira.
     # `if` = inicia uma estrutura condicional executada quando a condição for verdadeira.
@@ -3627,6 +3728,11 @@ def criar_projeto_inteligente(descricao: str, preferir_ollama=True, modelo=""):
     # `Retorna (Projeto, descrição_do_motor). Nunca depende de chave de API.` = texto literal utilizado nesta instrução.
     """Retorna (Projeto, descrição_do_motor). Nunca depende de chave de API."""
 
+    projeto_catalogo = _projeto_catalogo_por_prompt(descricao)
+    if projeto_catalogo is not None:
+        projeto, numero, nome = projeto_catalogo
+        return projeto, f"Biblioteca inteligente de projetos (Projeto {numero:02d} - {nome})"
+
     # Verifica a condição informada e executa o bloco seguinte somente quando ela for verdadeira.
     # `if` = inicia uma estrutura condicional executada quando a condição for verdadeira.
     # `calculadora` = texto literal utilizado nesta instrução.
@@ -3636,7 +3742,8 @@ def criar_projeto_inteligente(descricao: str, preferir_ollama=True, modelo=""):
     # `descricao` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a descricao.
     # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
     # `:` = separa partes da instrução e, conforme o contexto, marca anotação de tipo, chave e valor ou início de bloco.
-    if "calculadora" in _normalizar(descricao):
+    normal_descricao = _normalizar(descricao).strip()
+    if normal_descricao in {"calculadora", "crie uma calculadora", "criar calculadora", "calculadora basica"}:
 
         # Retorna o resultado desta linha para o ponto do programa que chamou a rotina atual.
         # `return` = encerra a rotina atual e devolve o valor especificado.

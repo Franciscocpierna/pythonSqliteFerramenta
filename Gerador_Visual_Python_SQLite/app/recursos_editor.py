@@ -414,6 +414,24 @@ def instalar_recursos_editor(classe):
         # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
         criar_menu_original(self)
 
+        from .projetos_30 import PROJETOS_30
+
+        try:
+            menu_principal = self.nametowidget(self.cget("menu"))
+        except (tk.TclError, KeyError):
+            return
+
+        menu_exemplos = tk.Menu(menu_principal, tearoff=0)
+
+        for indice, item in enumerate(PROJETOS_30):
+            menu_exemplos.add_command(
+                label=f"{indice + 1}. {item['nome']}",
+                command=lambda i=indice: self._carregar_projeto_30(i),
+                columnbreak=(indice == 22),
+            )
+
+        menu_principal.add_cascade(label=f"{len(PROJETOS_30)} Projetos", menu=menu_exemplos)
+
     # Define a rotina `_carregar_projeto_30`, responsável por executar a lógica relacionada a carregar projeto 30.
     # `def` = define uma nova função ou um novo método.
     # `_carregar_projeto_30` = função, método ou classe chamada para executar a operação relacionada a carregar projeto 30.
@@ -2692,6 +2710,38 @@ def instalar_recursos_editor(classe):
         }.get(alinhamento)
 
         # Armazena ou associa em `ancora` o valor ou resultado definido nesta linha.
+        # Aplica a fonte diretamente aos componentes que possuem a opção nativa de fonte.
+        # Isso garante que campos como Entry, Combobox e Spinbox usem a fonte do item selecionado.
+        if fonte:
+            try:
+                if "font" in widget.keys():
+                    widget.configure(font=fonte)
+            except (tk.TclError, AttributeError, TypeError):
+                pass
+
+        # Verifica se o componente visual atual é um Scale clássico do Tkinter.
+        if isinstance(widget, tk.Scale):
+            # Cria o conjunto de opções visuais específicas do Scale.
+            opcoes_scale = {}
+            # Mantém a fonte escolhida também no número mostrado pelo Scale.
+            if fonte:
+                opcoes_scale["font"] = fonte
+            # Aplica a cor de texto ao número mostrado pelo Scale.
+            if cor_texto:
+                opcoes_scale["fg"] = cor_texto
+            # Aplica a cor de fundo e da trilha quando houver uma cor definida.
+            if cor_fundo:
+                opcoes_scale["bg"] = cor_fundo
+                opcoes_scale["troughcolor"] = cor_fundo
+            # Aplica as opções reunidas ao componente.
+            if opcoes_scale:
+                try:
+                    widget.configure(**opcoes_scale)
+                except (tk.TclError, AttributeError, TypeError):
+                    pass
+            # Retorna o Scale já preparado para exibir e atualizar o valor numérico.
+            return widget
+
         ancora = {
 
             # Fornece o texto literal utilizado como argumento, valor ou conteúdo da instrução iniciada nas linhas anteriores.
@@ -3127,6 +3177,7 @@ def instalar_recursos_editor(classe):
             # `TSpinbox` = texto literal utilizado nesta instrução.
             # `,` = separa argumentos, parâmetros, propriedades ou elementos desta estrutura.
             "Spinbox": "TSpinbox",
+            "Scale": "TScale",
 
             # Fornece o texto literal utilizado como argumento, valor ou conteúdo da instrução iniciada nas linhas anteriores.
             # `Separator` = texto literal utilizado nesta instrução.
@@ -3701,7 +3752,7 @@ def instalar_recursos_editor(classe):
                 # `Text` = texto literal utilizado nesta instrução.
                 # `Combobox` = texto literal utilizado nesta instrução.
                 # `Listbox` = texto literal utilizado nesta instrução.
-                "Entry", "Text", "Combobox", "Listbox",
+                "Entry", "Text", "Combobox", "Listbox", "Treeview",
 
                 # Fornece o texto literal utilizado como argumento, valor ou conteúdo da instrução iniciada nas linhas anteriores.
                 # `PasswordEntry` = texto literal utilizado nesta instrução.
@@ -4641,6 +4692,10 @@ def instalar_recursos_editor(classe):
             # `quantidade` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a quantidade.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
             self._garantir_quantidade_campos_acao(quantidade)
+
+            # Mantém a lista de campos do banco sincronizada ao selecionar um Radiobutton.
+            if componente and componente.tipo == "Radiobutton":
+                sincronizar_campos_banco(self.tela)
 
             # Armazena ou associa em `resultado` o valor ou resultado definido nesta linha.
             # `resultado` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a resultado.
@@ -12523,7 +12578,7 @@ def instalar_recursos_editor(classe):
             # `style` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a style.
             # `Toolbutton` = texto literal utilizado nesta instrução.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
-            widget = ttk.Checkbutton(self.superficie, text=componente.texto or "Ativar", style="Toolbutton")
+            widget = ttk.Checkbutton(self.superficie, text=componente.texto or "Ativar")
 
             # Retorna o resultado desta linha para o ponto do programa que chamou a rotina atual.
             # `return` = encerra a rotina atual e devolve o valor especificado.
@@ -12758,7 +12813,19 @@ def instalar_recursos_editor(classe):
             # `texto` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a texto.
             # `anchor` = parâmetro que define o ponto de ancoragem do componente.
             # `center` = texto literal utilizado nesta instrução.
-            widget.create_text(max(10, int(componente.largura) // 2), max(10, int(componente.altura) // 2), text=componente.texto or "Área de desenho", fill=texto, anchor="center")
+            fonte_canvas = self._fonte_preview_componente(componente)
+            opcoes_texto = {
+                "text": componente.texto or "Área de desenho",
+                "fill": texto,
+                "anchor": "center",
+            }
+            if fonte_canvas:
+                opcoes_texto["font"] = fonte_canvas
+            widget.create_text(
+                max(10, int(componente.largura) // 2),
+                max(10, int(componente.altura) // 2),
+                **opcoes_texto,
+            )
 
             # Retorna o resultado desta linha para o ponto do programa que chamou a rotina atual.
             # `return` = encerra a rotina atual e devolve o valor especificado.

@@ -561,6 +561,63 @@ ACOES_BOTOES = [
     # `,` = separa argumentos, parâmetros, propriedades ou elementos desta estrutura.
     "Exportar dados para Excel",
 
+    "Cronômetro: iniciar",
+    "Cronômetro: pausar",
+    "Cronômetro: zerar",
+    "Temporizador: iniciar",
+    "Temporizador: pausar",
+    "Temporizador: zerar",
+    "Gerar senha segura",
+    "Calcular idade completa",
+    "Sortear nome",
+    "Gerar números de sorteio",
+    "Testar barra de progresso",
+    "Limpar área de desenho",
+    "Listbox: adicionar item",
+    "Listbox: excluir item selecionado",
+    "Listbox: alterar item selecionado",
+    "Listbox: limpar lista",
+    "Listbox: gerar sequência numérica",
+    "Texto: contar palavras e caracteres",
+    "Texto: localizar e substituir",
+    "Arquivo TXT: abrir",
+    "Arquivo TXT: salvar",
+    "Datas: calcular intervalo",
+    "Listbox: ordenar A-Z",
+    "Listbox: ordenar Z-A",
+    "Listbox: remover duplicados",
+    "CSV: importar para Treeview",
+    "Lista numérica: calcular estatísticas",
+    "Texto: converter para maiúsculas",
+    "Texto: converter para minúsculas",
+    "Texto: converter para título",
+    "Calendário: gerar mês",
+    "Senha: analisar força",
+
+    "Outlook: selecionar planilha do Excel",
+    "Outlook: escolher pasta de anexos",
+    "Outlook: aplicar negrito",
+    "Outlook: aplicar itálico",
+    "Outlook: aplicar sublinhado",
+    "Outlook: escolher cor do texto",
+    "Outlook: aplicar tamanho do texto",
+    "Outlook: inserir link",
+    "Outlook: inserir imagem",
+    "Outlook: adicionar anexo fixo",
+    "Outlook: remover anexo fixo",
+    "Outlook: criar rascunhos",
+
+    "Excel por coluna: selecionar arquivo",
+    "Excel por coluna: usar coluna selecionada",
+    "Excel por coluna: escolher pasta de saída",
+    "Excel por coluna: gerar arquivo com várias abas",
+    "Excel por coluna: gerar arquivos separados",
+
+    "Excel várias abas: selecionar arquivo",
+    "Excel várias abas: usar coluna selecionada",
+    "Excel várias abas: escolher pasta de saída",
+    "Excel várias abas: gerar arquivos",
+
     "Mostrar mensagem",
 
     # Fornece o texto literal utilizado como argumento, valor ou conteúdo da instrução iniciada nas linhas anteriores.
@@ -570,6 +627,49 @@ ACOES_BOTOES = [
 
 # Fecha a estrutura iniciada nas linhas anteriores e conclui esta parte da instrução.
 # `]` = fecha a lista, índice, acesso a elemento ou compreensão.
+]
+
+ACOES_RECURSOS_ESPECIAIS = {
+    "Outlook: selecionar planilha do Excel": "selecionar_excel",
+    "Outlook: escolher pasta de anexos": "selecionar_pasta_anexos",
+    "Outlook: aplicar negrito": "negrito",
+    "Outlook: aplicar itálico": "italico",
+    "Outlook: aplicar sublinhado": "sublinhado",
+    "Outlook: escolher cor do texto": "cor_texto",
+    "Outlook: aplicar tamanho do texto": "aplicar_tamanho",
+    "Outlook: inserir link": "link",
+    "Outlook: inserir imagem": "imagem",
+    "Outlook: adicionar anexo fixo": "adicionar_anexo",
+    "Outlook: remover anexo fixo": "remover_anexo",
+    "Outlook: criar rascunhos": "criar_rascunhos",
+    "Excel por coluna: selecionar arquivo": "qe46_selecionar_excel",
+    "Excel por coluna: usar coluna selecionada": "qe46_usar_coluna",
+    "Excel por coluna: escolher pasta de saída": "qe46_selecionar_pasta",
+    "Excel por coluna: gerar arquivo com várias abas": "qe46_gerar_abas",
+    "Excel por coluna: gerar arquivos separados": "qe46_gerar_arquivos",
+    "Excel várias abas: selecionar arquivo": "qe47_selecionar_excel",
+    "Excel várias abas: usar coluna selecionada": "qe47_usar_coluna",
+    "Excel várias abas: escolher pasta de saída": "qe47_selecionar_pasta",
+    "Excel várias abas: gerar arquivos": "qe47_gerar",
+}
+
+RECURSOS_ESPECIAIS_COMPONENTES = [
+    "",
+    "caminho_excel", "planilha_excel", "colunas_excel",
+    "email_to", "email_cc", "email_bcc", "assunto",
+    "pasta_anexos", "regra_anexo", "exigir_anexo",
+    "tamanho_texto", "corpo", "anexos_fixos", "status",
+    "selecionar_excel", "selecionar_pasta_anexos", "negrito", "italico",
+    "sublinhado", "cor_texto", "aplicar_tamanho", "link", "imagem",
+    "adicionar_anexo", "remover_anexo", "criar_rascunhos",
+    "qe46_caminho_excel", "qe46_selecionar_excel", "qe46_aba",
+    "qe46_lista_colunas", "qe46_coluna", "qe46_usar_coluna", "qe46_resumo",
+    "qe46_pasta_saida", "qe46_selecionar_pasta", "qe46_nome_geral",
+    "qe46_nome_individual", "qe46_gerar_abas", "qe46_gerar_arquivos", "qe46_status",
+    "qe47_caminho_excel", "qe47_selecionar_excel", "qe47_lista_abas",
+    "qe47_lista_colunas", "qe47_coluna", "qe47_usar_coluna", "qe47_resumo",
+    "qe47_pasta_saida", "qe47_selecionar_pasta", "qe47_nome_arquivo",
+    "qe47_gerar", "qe47_status",
 ]
 
 # Armazena ou associa em `OPERACOES_MATEMATICAS` o valor ou resultado definido nesta linha.

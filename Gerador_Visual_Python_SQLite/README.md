@@ -46,7 +46,7 @@ cria novos seletores sem um limite fixo. Depois disso, escolha a operação dese
 - Dividir
 - Média
 - Porcentagem
-- Resto da divisão      
+- Resto da divisão
 - Potência
 - Mínimo
 - Máximo
@@ -100,6 +100,93 @@ MODELOS
 
 Os modelos prontos também usam a mesma estrutura de ações e SQLite.
 
+62 PROJETOS
+
+O menu "62 Projetos" cria o exemplo escolhido diretamente no Designer Visual. Cada projeto pode ser editado, ter componentes movidos, copiados, renomeados ou excluídos e continua usando o mesmo gerador de código em tempo real.
+
+1. Cadastro de Alunos
+2. Cadastro de Produtos
+3. Calculadora Básica com Teclado
+4. Calculadora de Média Escolar
+5. Calculadora de IMC
+6. Calculadora de Desconto
+7. Calculadora de Comissão de Vendas
+8. Conversor de Temperatura
+9. Conversor de Quilômetros para Milhas
+10. Gerador de Tabuada
+11. Verificador de Número Par ou Ímpar
+12. Verificador de Maioridade
+13. Classificador de Nota
+14. Calculadora de Salário Líquido
+15. Calculadora de Horas Trabalhadas
+16. Calculadora de Consumo de Combustível
+17. Simulador de Troco
+18. Simulador de Parcelamento
+19. Gerador de Orçamento Simples
+20. Controle de Notas Acadêmicas
+21. Lista de Tarefas
+22. Agenda de Compromissos
+23. Controle de Empréstimos de Livros
+24. Alerta de Estoque Mínimo
+25. Pesquisa de Satisfação
+26. Questionário de Múltipla Escolha
+27. Formulário de Inscrição em Evento
+28. Sistema de Login Simples
+29. Menu com Várias Telas
+30. Calculadora com Histórico
+31. Cronômetro
+32. Temporizador
+33. Gerador de Senhas Seguras
+34. Calculadora de Idade Completa
+35. Sorteador de Nomes
+36. Gerador de Números para Sorteio
+37. Quiz Interativo
+38. Preferências com RadioButton, Spinbox, Scale, Separador e Frame
+39. Formulário com Senha, E-mail, Data e Horário
+40. Editor com ScrolledText, Menubutton e ToggleButton
+41. Painel com Progressbar, Separador Vertical e Canvas
+42. Lista com Filtro, Contador e Exportação para Excel
+43. Exportar Listbox para Excel
+44. Exportar Dados da Treeview para Excel
+45. Criador de E-mails em Rascunho no Outlook
+46. Quebrar Planilha do Excel por Coluna
+47. Quebrar Arquivo com Várias Abas por Coluna
+48. Gerenciador de Itens na Listbox
+49. Lista de Compras Interativa
+50. Gerador de Sequência Numérica em Lista
+51. Treeview Personalizada
+52. Campos Obrigatórios e Campos Bloqueados
+53. Contador de Palavras e Caracteres
+54. Localizar e Substituir em um Texto
+55. Editor de Arquivo TXT
+56. Calculadora de Intervalo entre Datas
+57. Organizador de Lista
+58. Importador de CSV para Treeview
+59. Estatísticas de uma Lista Numérica
+60. Conversor de Texto
+61. Gerador de Calendário Mensal
+62. Analisador de Força de Senha
+
+RECURSOS DOS PROJETOS 48 A 52
+
+Os projetos 48 e 49 demonstram inclusão, exclusão e limpeza de itens em Listbox. As ações podem ser escolhidas manualmente na configuração dos botões e reutilizadas em outras listas.
+
+O projeto 50 gera uma sequência numérica de 1 até a quantidade informada pelo usuário. O exemplo começa com 600, mas aceita outras quantidades positivas sem o limite artificial de 60.
+
+O projeto 51 demonstra a personalização visual da Treeview por meio das propriedades de fonte, tamanho, negrito, cor do texto e cor do fundo.
+
+O projeto 52 demonstra campos obrigatórios e campos bloqueados. Campos marcados como obrigatórios precisam ser preenchidos antes do cadastro. Campos marcados como bloqueados ficam somente para leitura durante a execução do programa.
+
+RECURSOS DOS PROJETOS 53 A 62
+
+Os projetos 53 e 54 trabalham análise, busca e substituição de texto. O projeto 55 abre e salva arquivos TXT utilizando caixas de diálogo do Windows.
+
+O projeto 56 calcula a diferença entre duas datas. O projeto 57 demonstra ordenação e remoção de duplicados em Listbox. O projeto 58 importa arquivos CSV diretamente para uma Treeview, criando as colunas a partir do cabeçalho do arquivo.
+
+O projeto 59 calcula quantidade, soma, média, mediana, menor e maior valor de uma lista numérica. O projeto 60 transforma textos em maiúsculas, minúsculas e formato de título. O projeto 61 monta um calendário mensal e o projeto 62 analisa critérios de força de uma senha.
+
+As ações usadas nesses exemplos também aparecem na lista de ações dos botões, permitindo reutilizá-las em projetos criados manualmente.
+
 CALCULADORA COM TECLADO
 
 A calculadora utiliza componentes comuns:
@@ -122,9 +209,31 @@ python main.py
 
 O projeto utiliza Python, Tkinter e SQLite.
 
-Para usar a ação de exportação para arquivo .xlsx nos programas gerados, instale também o openpyxl com:
+Para usar recursos com arquivos .xlsx nos programas gerados, instale também o openpyxl com:
 
 pip install openpyxl
+
+O exemplo de criação de rascunhos no Outlook utiliza o Outlook clássico para Windows e a biblioteca pywin32:
+
+pip install pywin32
+
+Esse exemplo cria mensagens na pasta de rascunhos e não executa envio automático.
+
+Os projetos 46 e 47 utilizam openpyxl para ler e criar arquivos do Excel. O projeto 46 permite quebrar uma aba por uma coluna, gerando um único arquivo com várias abas ou vários arquivos separados. O projeto 47 lê várias abas do mesmo arquivo e gera um arquivo separado para cada valor da coluna escolhida, mantendo as abas originais filtradas por esse valor.
+
+ARQUIVOS DE TESTE DOS PROJETOS 46 E 47
+
+Na pasta arquivos_teste existem dois arquivos prontos:
+
+- Projeto_46_Teste_Quebra_Por_Coluna.xlsx: use a aba Dados e escolha a coluna Departamento. Financeiro e Vendas possuem 5 registros cada, RH possui 4 e TI possui 6.
+- Projeto_47_Teste_Quebra_Varias_Abas.xlsx: possui Janeiro, Fevereiro, Março e Abril. Escolha a coluna Filial para gerar um arquivo por filial mantendo as quatro abas filtradas.
+
+ARQUIVOS DE TESTE DOS PROJETOS 55 E 58
+
+Na mesma pasta também existem exemplos simples para testar os novos recursos:
+
+- Projeto_55_Exemplo_Texto.txt: arquivo de texto pronto para abrir, editar e salvar no Editor de Arquivo TXT.
+- Projeto_58_Exemplo_Alunos.csv: arquivo CSV com Nome, Curso, Nota e Cidade para importar diretamente na Treeview.
 
 EDIÇÃO VISUAL EM TEMPO REAL
 
@@ -214,10 +323,25 @@ ESTRUTURA DOS MODELOS
 
 Os modelos de cadastro e controle mantêm o CRUD do módulo principal e acrescentam o fluxo completo de usuários e autenticação. O Sistema Comercial mantém seus vários módulos de negócio. A Calculadora também utiliza o mesmo fluxo de Login, cadastro de usuário, Menu Principal e gerenciamento de usuários antes da funcionalidade principal.
 
-Tudo continua editável no Designer Visual. Telas, campos, botões, ações, nomes, posições, tamanhos, cores, fontes, colunas SQLite e títulos de Treeview podem ser modificados e o código gerado acompanha as mudanças automaticamente.
+Tudo continua editável no Designer Visual. Telas, campos, botões, ações, nomes, posições, tamanhos, cores, fontes, colunas SQLite e títulos de Treeview podem ser modificados e o código gerado acompanha as mudanças automaticamente. A personalização visual de fonte, tamanho, negrito, itálico, sublinhado, cor do texto, cor de fundo e alinhamento é aplicada aos componentes compatíveis, incluindo Entry, Text, ScrolledText, Combobox, Listbox, Treeview, botões, seletores, Spinbox, Scale e outros controles temáticos.
 
 ## Componentes disponíveis no Designer
 
 O Designer possui 24 tipos de componentes: Texto / Rótulo, Campo de texto, Texto multilinha, Lista suspensa, Lista, Tabela / Treeview, Botão, Caixa de seleção, Botão de opção, Campo numérico, Controle deslizante, Separador, Painel / Grupo, Filtro de tabela, Campo de senha, Campo de e-mail, Campo de data, Campo de horário, Texto com rolagem, Menu de opções, Botão liga/desliga, Barra de progresso, Separador vertical e Área de desenho.
 
 A janela de edição dos registros mantém os botões Salvar alterações e Cancelar fixos no rodapé. Quando existirem muitos campos, a área do formulário possui rolagem vertical e também aceita a roda do mouse.
+
+EXPORTAÇÃO PARA ARQUIVO EXECUTÁVEL
+
+Na aba "Código", ao lado do botão "Exportar .py", existe o botão "Exportar .exe".
+
+Ao utilizar essa opção:
+- o Gerador utiliza o código Python correspondente ao projeto que está atualmente no Designer Visual;
+- o usuário escolhe o nome e a pasta do arquivo executável;
+- o PyInstaller cria um único arquivo .exe em modo gráfico, sem abrir uma janela de console junto com o programa Tkinter;
+- os arquivos temporários utilizados durante a criação são removidos automaticamente;
+- se o projeto utiliza leitura ou exportação de Excel, o openpyxl também é verificado para manter esse recurso no executável;
+- se o projeto utiliza automação do Outlook, o pywin32 e os módulos COM necessários também são incluídos no empacotamento;
+- se alguma biblioteca necessária não estiver instalada, o Gerador oferece a instalação automática.
+
+A criação de arquivos .exe deve ser executada no Windows. O arquivo final pode ser aberto diretamente pelo Windows sem precisar abrir manualmente o arquivo .py correspondente.

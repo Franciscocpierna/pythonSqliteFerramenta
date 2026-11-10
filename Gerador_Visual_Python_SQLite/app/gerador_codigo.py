@@ -49,6 +49,7 @@ from .modelos import Projeto, Tela
 # `import` = importa um módulo ou recurso para que possa ser utilizado neste arquivo.
 # `normalizar_projeto` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a normalizar projeto.
 from .acoes_genericas import normalizar_projeto
+from .biblioteca import ACOES_RECURSOS_ESPECIAIS
 
 # Define a rotina `nome_python`, responsável por executar a lógica relacionada a nome python.
 # `def` = define uma nova função ou um novo método.
@@ -1350,6 +1351,16 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
     # `]` = fecha a lista, índice, acesso a elemento ou compreensão.
     filtros = [c for c in tela.componentes if c.tipo == "Filtro"]
 
+    # Guarda os nomes dos Canvas usados como área de desenho.
+    # Assim o recurso funciona também quando o usuário monta o projeto manualmente.
+    canvas_desenhaveis = {
+        (getattr(c, "campo_resultado", "") or "").strip()
+        for c in tela.componentes
+        if c.tipo == "Button"
+        and (getattr(c, "acao", "") or "").strip() == "Limpar área de desenho"
+        and (getattr(c, "campo_resultado", "") or "").strip()
+    }
+
     # Armazena ou associa em `utilizaveis` o valor ou resultado definido nesta linha.
     # `utilizaveis` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a utilizaveis.
     # `=` = operador de atribuição utilizado para armazenar ou associar o valor da direita ao elemento da esquerda.
@@ -1368,6 +1379,16 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
     # `campos_nao_pk` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a campos nao pk.
     # `]` = fecha a lista, índice, acesso a elemento ou compreensão.
     utilizaveis = [(campo, widget) for campo, widget in campos_widgets.items() if campo in campos_nao_pk]
+
+    # Relaciona cada Radiobutton ao campo compartilhado do grupo.
+    # Assim, qualquer opção do grupo pode ser escolhida manualmente nas ações do botão.
+    mapa_radios = {
+        nomes[componente.id]: nome_python(componente.campo_banco, "campo")
+        for componente in tela.componentes
+        if componente.tipo == "Radiobutton"
+        and componente.campo_banco
+        and nome_python(componente.campo_banco, "campo") in campos_nao_pk
+    }
 
     # Armazena ou associa em `botoes_login` o valor ou resultado definido nesta linha.
     # `botoes_login` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a botoes login.
@@ -2119,7 +2140,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `nome` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a nome.
             # `}` = fecha o dicionário, conjunto ou estrutura de compreensão.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
-            add(f"        self.var_{nome} = tk.StringVar()")
+            add(f"        self.var_{nome} = tk.StringVar(value={comp.texto!r})")
 
             # Verifica a condição informada e executa o bloco seguinte somente quando ela for verdadeira.
             # `if` = inicia uma estrutura condicional executada quando a condição for verdadeira.
@@ -2141,6 +2162,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
                 # `TEntry` = texto literal utilizado nesta instrução.
                 # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
                 estilo = _expressao_estilo_ttk(comp, "TEntry")
+                fonte_direta = _fonte_visual(comp, "Segoe UI", 10)
 
                 # Armazena ou associa em `justificar` o valor ou resultado definido nesta linha.
                 # `justificar` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a justificar.
@@ -2165,7 +2187,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
                 # `+` = operador utilizado para realizar soma ou concatenação, conforme os valores envolvidos.
                 # `justificar` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a justificar.
                 # `r` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a r.
-                args_visuais = (f", style={estilo}" if estilo else "") + (f", justify={justificar!r}" if justificar else "")
+                args_visuais = (f", style={estilo}" if estilo else "") + (f", font={fonte_direta!r}" if fonte_direta else "") + (f", justify={justificar!r}" if justificar else "")
 
                 # Executa `add` com os argumentos informados para realizar a operação correspondente.
                 # `add` = função, método ou classe chamada para executar a operação relacionada a add.
@@ -2192,6 +2214,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
                 # `TEntry` = texto literal utilizado nesta instrução.
                 # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
                 estilo = _expressao_estilo_ttk(comp, "TEntry")
+                fonte_direta = _fonte_visual(comp, "Segoe UI", 10)
 
                 # Armazena ou associa em `justificar` o valor ou resultado definido nesta linha.
                 # `justificar` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a justificar.
@@ -2216,7 +2239,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
                 # `+` = operador utilizado para realizar soma ou concatenação, conforme os valores envolvidos.
                 # `justificar` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a justificar.
                 # `r` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a r.
-                args_visuais = (f", style={estilo}" if estilo else "") + (f", justify={justificar!r}" if justificar else "")
+                args_visuais = (f", style={estilo}" if estilo else "") + (f", font={fonte_direta!r}" if fonte_direta else "") + (f", justify={justificar!r}" if justificar else "")
 
                 # Executa `add` com os argumentos informados para realizar a operação correspondente.
                 # `add` = função, método ou classe chamada para executar a operação relacionada a add.
@@ -2292,7 +2315,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `nome` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a nome.
             # `}` = fecha o dicionário, conjunto ou estrutura de compreensão.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
-            add(f"        self.var_{nome} = tk.StringVar()")
+            add(f"        self.var_{nome} = tk.StringVar(value={comp.texto!r})")
 
             # Armazena ou associa em `estilo` o valor ou resultado definido nesta linha.
             # `estilo` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a estilo.
@@ -2304,6 +2327,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `TEntry` = texto literal utilizado nesta instrução.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
             estilo = _expressao_estilo_ttk(comp, "TEntry")
+            fonte_direta = _fonte_visual(comp, "Segoe UI", 10)
 
             # Armazena ou associa em `justificar` o valor ou resultado definido nesta linha.
             # `justificar` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a justificar.
@@ -2328,7 +2352,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `+` = operador utilizado para realizar soma ou concatenação, conforme os valores envolvidos.
             # `justificar` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a justificar.
             # `r` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a r.
-            args_visuais = (f", style={estilo}" if estilo else "") + (f", justify={justificar!r}" if justificar else "")
+            args_visuais = (f", style={estilo}" if estilo else "") + (f", font={fonte_direta!r}" if fonte_direta else "") + (f", justify={justificar!r}" if justificar else "")
 
             # Armazena ou associa em `mostrar` o valor ou resultado definido nesta linha.
             # `mostrar` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a mostrar.
@@ -2515,6 +2539,8 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `h` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a h.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
             add(f"        self.{nome}.place(x={x}, y={y}, width={w}, height={h})")
+            if comp.texto:
+                add(f"        self.{nome}.insert('1.0', {comp.texto!r})")
 
         # Verifica uma condição alternativa quando a condição anterior não foi atendida.
         # `elif` = testa uma condição alternativa quando as condições anteriores não foram atendidas.
@@ -2603,6 +2629,8 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `h` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a h.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
             add(f"        self.{nome}.place(x={x}, y={y}, width={w}, height={h})")
+            if comp.texto:
+                add(f"        self.{nome}.insert('1.0', {comp.texto!r})")
 
         # Verifica uma condição alternativa quando a condição anterior não foi atendida.
         # `elif` = testa uma condição alternativa quando as condições anteriores não foram atendidas.
@@ -2633,6 +2661,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `TCombobox` = texto literal utilizado nesta instrução.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
             estilo = _expressao_estilo_ttk(comp, "TCombobox")
+            fonte_direta = _fonte_visual(comp, "Segoe UI", 10)
 
             # Armazena ou associa em `justificar` o valor ou resultado definido nesta linha.
             # `justificar` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a justificar.
@@ -2657,7 +2686,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `+` = operador utilizado para realizar soma ou concatenação, conforme os valores envolvidos.
             # `justificar` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a justificar.
             # `r` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a r.
-            args_visuais = (f", style={estilo}" if estilo else "") + (f", justify={justificar!r}" if justificar else "")
+            args_visuais = (f", style={estilo}" if estilo else "") + (f", font={fonte_direta!r}" if fonte_direta else "") + (f", justify={justificar!r}" if justificar else "")
 
             # Executa `add` com os argumentos informados para realizar a operação correspondente.
             # `add` = função, método ou classe chamada para executar a operação relacionada a add.
@@ -3474,6 +3503,91 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
                 origem = campos_acao[0] if campos_acao else ""
                 comando = f"lambda: self.gerar_numeros_sorteio({origem!r}, {destino!r})"
 
+            elif comp.acao == "Testar barra de progresso":
+                origem = campos_acao[0] if campos_acao else ""
+                comando = f"lambda: self.testar_barra_progresso({origem!r}, {destino!r}, {destino_2!r})"
+
+            elif comp.acao == "Limpar área de desenho":
+                comando = f"lambda: self.limpar_area_desenho({destino!r})"
+
+            elif comp.acao == "Listbox: adicionar item":
+                origem = campos_acao[0] if campos_acao else ""
+                comando = f"lambda: self.listbox_adicionar_item({origem!r}, {destino!r})"
+
+            elif comp.acao == "Listbox: excluir item selecionado":
+                comando = f"lambda: self.listbox_excluir_selecionado({destino!r})"
+
+            elif comp.acao == "Listbox: alterar item selecionado":
+                origem = campos_acao[0] if campos_acao else ""
+                comando = f"lambda: self.listbox_alterar_selecionado({origem!r}, {destino!r})"
+
+            elif comp.acao == "Listbox: limpar lista":
+                comando = f"lambda: self.listbox_limpar({destino!r})"
+
+            elif comp.acao == "Listbox: gerar sequência numérica":
+                origem = campos_acao[0] if campos_acao else ""
+                comando = f"lambda: self.listbox_gerar_sequencia({origem!r}, {destino!r})"
+
+            elif comp.acao == "Texto: contar palavras e caracteres":
+                origem = campos_acao[0] if campos_acao else ""
+                comando = f"lambda: self.texto_contar({origem!r}, {destino!r})"
+
+            elif comp.acao == "Texto: localizar e substituir":
+                origem = campos_acao[0] if campos_acao else ""
+                localizar = campos_acao[1] if len(campos_acao) > 1 else ""
+                substituir = campos_acao[2] if len(campos_acao) > 2 else ""
+                comando = f"lambda: self.texto_localizar_substituir({origem!r}, {localizar!r}, {substituir!r}, {destino!r}, {destino_2!r})"
+
+            elif comp.acao == "Arquivo TXT: abrir":
+                comando = f"lambda: self.arquivo_txt_abrir({destino!r}, {destino_2!r})"
+
+            elif comp.acao == "Arquivo TXT: salvar":
+                origem = campos_acao[0] if campos_acao else ""
+                caminho = campos_acao[1] if len(campos_acao) > 1 else ""
+                comando = f"lambda: self.arquivo_txt_salvar({origem!r}, {caminho!r})"
+
+            elif comp.acao == "Datas: calcular intervalo":
+                inicio = campos_acao[0] if campos_acao else ""
+                fim = campos_acao[1] if len(campos_acao) > 1 else ""
+                comando = f"lambda: self.datas_calcular_intervalo({inicio!r}, {fim!r}, {destino!r})"
+
+            elif comp.acao == "Listbox: ordenar A-Z":
+                comando = f"lambda: self.listbox_ordenar({destino!r}, False)"
+
+            elif comp.acao == "Listbox: ordenar Z-A":
+                comando = f"lambda: self.listbox_ordenar({destino!r}, True)"
+
+            elif comp.acao == "Listbox: remover duplicados":
+                comando = f"lambda: self.listbox_remover_duplicados({destino!r})"
+
+            elif comp.acao == "CSV: importar para Treeview":
+                comando = f"lambda: self.csv_importar_treeview({destino!r}, {destino_2!r})"
+
+            elif comp.acao == "Lista numérica: calcular estatísticas":
+                origem = campos_acao[0] if campos_acao else ""
+                comando = f"lambda: self.lista_calcular_estatisticas({origem!r}, {destino!r})"
+
+            elif comp.acao == "Texto: converter para maiúsculas":
+                origem = campos_acao[0] if campos_acao else ""
+                comando = f"lambda: self.texto_converter({origem!r}, {destino!r}, 'maiusculas')"
+
+            elif comp.acao == "Texto: converter para minúsculas":
+                origem = campos_acao[0] if campos_acao else ""
+                comando = f"lambda: self.texto_converter({origem!r}, {destino!r}, 'minusculas')"
+
+            elif comp.acao == "Texto: converter para título":
+                origem = campos_acao[0] if campos_acao else ""
+                comando = f"lambda: self.texto_converter({origem!r}, {destino!r}, 'titulo')"
+
+            elif comp.acao == "Calendário: gerar mês":
+                mes = campos_acao[0] if campos_acao else ""
+                ano = campos_acao[1] if len(campos_acao) > 1 else ""
+                comando = f"lambda: self.calendario_gerar_mes({mes!r}, {ano!r}, {destino!r})"
+
+            elif comp.acao == "Senha: analisar força":
+                origem = campos_acao[0] if campos_acao else ""
+                comando = f"lambda: self.senha_analisar_forca({origem!r}, {destino!r})"
+
             elif comp.acao == "Mostrar mensagem":
 
                 # Armazena ou associa em `mensagem` o valor ou resultado definido nesta linha.
@@ -3673,7 +3787,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `Ativar` = texto literal utilizado nesta instrução.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
             # `r` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a r.
-            add(f"        self.{nome} = ttk.Checkbutton(self, text={(comp.texto or 'Ativar')!r}, variable=self.var_{nome}, style='Toolbutton')")
+            add(f"        self.{nome} = ttk.Checkbutton(self, text={(comp.texto or 'Ativar')!r}, variable=self.var_{nome})")
 
             # Executa `add` com os argumentos informados para realizar a operação correspondente.
             # `add` = função, método ou classe chamada para executar a operação relacionada a add.
@@ -3734,6 +3848,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `TSpinbox` = texto literal utilizado nesta instrução.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
             estilo = _expressao_estilo_ttk(comp, "TSpinbox")
+            fonte_direta = _fonte_visual(comp, "Segoe UI", 10)
 
             # Armazena ou associa em `justificar` o valor ou resultado definido nesta linha.
             # `justificar` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a justificar.
@@ -3758,7 +3873,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `+` = operador utilizado para realizar soma ou concatenação, conforme os valores envolvidos.
             # `justificar` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a justificar.
             # `r` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a r.
-            args_visuais = (f", style={estilo}" if estilo else "") + (f", justify={justificar!r}" if justificar else "")
+            args_visuais = (f", style={estilo}" if estilo else "") + (f", font={fonte_direta!r}" if fonte_direta else "") + (f", justify={justificar!r}" if justificar else "")
 
             # Executa `add` com os argumentos informados para realizar a operação correspondente.
             # `add` = função, método ou classe chamada para executar a operação relacionada a add.
@@ -3802,6 +3917,19 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
             add(f"        self.var_{nome} = tk.DoubleVar(value=0)")
 
+            # Obtém a fonte configurada para o componente quando houver personalização.
+            fonte_direta = _fonte_visual(comp, "Segoe UI", 10)
+            # Obtém a cor do texto configurada para o componente.
+            cor_texto = (getattr(comp, "cor_texto", "") or "").strip()
+            # Obtém a cor de fundo configurada para o componente.
+            cor_fundo = (getattr(comp, "cor_fundo", "") or "").strip()
+            # Monta somente as opções visuais que foram definidas pelo usuário.
+            args_visuais = (f", font={fonte_direta!r}" if fonte_direta else "")
+            # Inclui a cor do número exibido pelo Scale quando ela estiver definida.
+            args_visuais += (f", fg={cor_texto!r}" if cor_texto else "")
+            # Inclui a cor de fundo e da trilha do Scale quando ela estiver definida.
+            args_visuais += (f", bg={cor_fundo!r}, troughcolor={cor_fundo!r}" if cor_fundo else "")
+
             # Executa `add` com os argumentos informados para realizar a operação correspondente.
             # `add` = função, método ou classe chamada para executar a operação relacionada a add.
             # `(` = abre a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
@@ -3809,7 +3937,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `nome` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a nome.
             # `}` = fecha o dicionário, conjunto ou estrutura de compreensão.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
-            add(f"        self.{nome} = ttk.Scale(self, from_=0, to=100, variable=self.var_{nome})")
+            add(f"        self.{nome} = tk.Scale(self, from_=0, to=100, orient=tk.HORIZONTAL, showvalue=True, resolution=1, highlightthickness=0, variable=self.var_{nome}{args_visuais})")
 
             # Executa `add` com os argumentos informados para realizar a operação correspondente.
             # `add` = função, método ou classe chamada para executar a operação relacionada a add.
@@ -4055,6 +4183,13 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
             add(f"        self.{nome}.place(x={x}, y={y}, width={w}, height={h})")
 
+            # Ativa o desenho quando o Canvas foi ligado a uma ação de limpar desenho
+            # ou quando ele pertence ao exemplo pronto do painel de desenho.
+            eh_canvas_desenho = (
+                (comp.nome or "").strip() in canvas_desenhaveis
+                or (projeto.nome == "Painel de Progresso e Área de Desenho" and comp.nome == "area_desenho")
+            )
+
             # Verifica a condição informada e executa o bloco seguinte somente quando ela for verdadeira.
             # `if` = inicia uma estrutura condicional executada quando a condição for verdadeira.
             # `comp` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a comp.
@@ -4062,6 +4197,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `texto` = atributo, método ou recurso acessado com o nome `texto`.
             # `:` = separa partes da instrução e, conforme o contexto, marca anotação de tipo, chave e valor ou início de bloco.
             if comp.texto:
+                fonte_canvas = _fonte_visual(comp, "Segoe UI", 10)
 
                 # Executa `add` com os argumentos informados para realizar a operação correspondente.
                 # `add` = função, método ou classe chamada para executar a operação relacionada a add.
@@ -4084,7 +4220,16 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
                 # `texto` = atributo, método ou recurso acessado com o nome `texto`.
                 # `r` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a r.
                 # `texto_canvas` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a texto canvas.
-                add(f"        self.{nome}.create_text({max(1, w // 2)}, {max(1, h // 2)}, text={comp.texto!r}, fill={texto_canvas}, anchor='center')")
+                args_fonte_canvas = f", font={fonte_canvas!r}" if fonte_canvas else ""
+                tag_instrucao = ", tags=('instrucao',)" if eh_canvas_desenho else ""
+                add(f"        self.{nome}.create_text({max(1, w // 2)}, {max(1, h // 2)}, text={comp.texto!r}, fill={texto_canvas}, anchor='center'{args_fonte_canvas}{tag_instrucao})")
+
+            if eh_canvas_desenho:
+                add(f"        self.{nome}._cor_lapis = {texto_canvas}")
+                add(f"        self.{nome}._texto_instrucao = {comp.texto!r}")
+                add(f"        self.{nome}.bind('<Button-1>', lambda e, n={nome!r}: self._iniciar_desenho(n, e))")
+                add(f"        self.{nome}.bind('<B1-Motion>', lambda e, n={nome!r}: self._continuar_desenho(n, e))")
+                add(f"        self.{nome}.bind('<ButtonRelease-1>', lambda e, n={nome!r}: self._finalizar_desenho(n, e))")
 
         # Verifica uma condição alternativa quando a condição anterior não foi atendida.
         # `elif` = testa uma condição alternativa quando as condições anteriores não foram atendidas.
@@ -4174,6 +4319,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `TEntry` = texto literal utilizado nesta instrução.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
             estilo = _expressao_estilo_ttk(comp, "TEntry")
+            fonte_direta = _fonte_visual(comp, "Segoe UI", 10)
 
             # Armazena ou associa em `justificar` o valor ou resultado definido nesta linha.
             # `justificar` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a justificar.
@@ -4198,7 +4344,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `+` = operador utilizado para realizar soma ou concatenação, conforme os valores envolvidos.
             # `justificar` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a justificar.
             # `r` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a r.
-            args_visuais = (f", style={estilo}" if estilo else "") + (f", justify={justificar!r}" if justificar else "")
+            args_visuais = (f", style={estilo}" if estilo else "") + (f", font={fonte_direta!r}" if fonte_direta else "") + (f", justify={justificar!r}" if justificar else "")
 
             # Executa `add` com os argumentos informados para realizar a operação correspondente.
             # `add` = função, método ou classe chamada para executar a operação relacionada a add.
@@ -4231,6 +4377,14 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
             # `}` = fecha o dicionário, conjunto ou estrutura de compreensão.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
             add(f"        self.{nome}.bind('<KeyRelease>', lambda e: self.aplicar_filtro())")
+
+        # Mantém campos marcados como bloqueados somente para leitura na aplicação gerada.
+        if getattr(comp, "bloqueado", False):
+            if comp.tipo in {"Entry", "PasswordEntry", "EmailEntry", "DateEntry", "TimeEntry"}:
+                add(f"        self.{nome}.configure(state='readonly')")
+            elif comp.tipo in {"Text", "ScrolledText", "Combobox", "Spinbox", "Checkbutton",
+                               "ToggleButton", "Radiobutton", "Scale", "Menubutton", "Listbox"}:
+                add(f"        self.{nome}.configure(state='disabled')")
 
     # Verifica a condição informada e executa o bloco seguinte somente quando ela for verdadeira.
     # `if` = inicia uma estrutura condicional executada quando a condição for verdadeira.
@@ -4527,7 +4681,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
     add("        if not fontes:")
     add("            messagebox.showwarning('Excel', 'Selecione uma Treeview ou uma Listbox nos Campos da ação.')")
     add("            return")
-    add("        caminho = filedialog.asksaveasfilename(title='Exportar para Excel', defaultextension='.xlsx', filetypes=[('Arquivo do Excel', '*.xlsx')])")
+    add("        caminho = filedialog.asksaveasfilename(parent=self, title='Exportar para Excel', defaultextension='.xlsx', filetypes=[('Arquivo do Excel', '*.xlsx')])")
     add("        if not caminho:")
     add("            return")
     add("        wb = Workbook()")
@@ -4693,6 +4847,386 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
     add("        numeros = sorted(random.sample(range(1, 61), quantidade))")
     add("        self._definir_valor_componente(destino, [f'{numero:02d}' for numero in numeros])")
     add("        self._atualizar_contadores()")
+    add("")
+    add("    def testar_barra_progresso(self, origem, destino, label_percentual=''):")
+    add("        try:")
+    add("            alvo = int(float(str(self._valor_componente(origem)).replace(',', '.')))")
+    add("        except (TypeError, ValueError):")
+    add("            messagebox.showwarning('Progresso', 'Informe um número de 0 a 100.')")
+    add("            return")
+    add("        alvo = max(0, min(100, alvo))")
+    add("        barra = getattr(self, destino, None)")
+    add("        if not isinstance(barra, ttk.Progressbar):")
+    add("            messagebox.showwarning('Progresso', 'Selecione uma Progressbar em Campo de resultado.')")
+    add("            return")
+    add("        self._progresso_execucao = int(getattr(self, '_progresso_execucao', 0)) + 1")
+    add("        execucao = self._progresso_execucao")
+    add("        try:")
+    add("            atual = int(float(barra['value']))")
+    add("        except (TypeError, ValueError):")
+    add("            atual = 0")
+    add("        passo = 1 if alvo >= atual else -1")
+    add("        def atualizar(valor):")
+    add("            if execucao != getattr(self, '_progresso_execucao', 0):")
+    add("                return")
+    add("            barra['value'] = valor")
+    add("            rotulo = getattr(self, label_percentual, None) if label_percentual else None")
+    add("            if rotulo is not None and hasattr(rotulo, 'configure'):")
+    add("                rotulo.configure(text=f'{valor}% concluído')")
+    add("            if valor == alvo:")
+    add("                return")
+    add("            self.after(25, lambda: atualizar(valor + passo))")
+    add("        atualizar(atual)")
+    add("")
+    add("    def _iniciar_desenho(self, nome_canvas, evento):")
+    add("        canvas = getattr(self, nome_canvas, None)")
+    add("        if not isinstance(canvas, tk.Canvas):")
+    add("            return")
+    add("        canvas.delete('instrucao')")
+    add("        if not hasattr(self, '_pontos_desenho'):")
+    add("            self._pontos_desenho = {}")
+    add("        self._pontos_desenho[nome_canvas] = (evento.x, evento.y)")
+    add("")
+    add("    def _continuar_desenho(self, nome_canvas, evento):")
+    add("        canvas = getattr(self, nome_canvas, None)")
+    add("        if not isinstance(canvas, tk.Canvas):")
+    add("            return")
+    add("        pontos = getattr(self, '_pontos_desenho', {})")
+    add("        anterior = pontos.get(nome_canvas)")
+    add("        if anterior is None:")
+    add("            anterior = (evento.x, evento.y)")
+    add("        cor = getattr(canvas, '_cor_lapis', '#233247')")
+    add("        canvas.create_line(anterior[0], anterior[1], evento.x, evento.y, fill=cor, width=3, capstyle=tk.ROUND, smooth=True, tags=('desenho',))")
+    add("        pontos[nome_canvas] = (evento.x, evento.y)")
+    add("        self._pontos_desenho = pontos")
+    add("")
+    add("    def _finalizar_desenho(self, nome_canvas, evento=None):")
+    add("        pontos = getattr(self, '_pontos_desenho', {})")
+    add("        pontos.pop(nome_canvas, None)")
+    add("        self._pontos_desenho = pontos")
+    add("")
+    add("    def limpar_area_desenho(self, nome_canvas):")
+    add("        canvas = getattr(self, nome_canvas, None)")
+    add("        if not isinstance(canvas, tk.Canvas):")
+    add("            messagebox.showwarning('Desenho', 'Selecione um Canvas em Campo de resultado.')")
+    add("            return")
+    add("        canvas.delete('desenho')")
+    add("        canvas.delete('instrucao')")
+    add("        texto = getattr(canvas, '_texto_instrucao', 'Arraste o mouse para desenhar')")
+    add("        cor = getattr(canvas, '_cor_lapis', '#233247')")
+    add("        canvas.update_idletasks()")
+    add("        largura = max(1, canvas.winfo_width())")
+    add("        altura = max(1, canvas.winfo_height())")
+    add("        canvas.create_text(largura // 2, altura // 2, text=texto, fill=cor, anchor='center', tags=('instrucao',))")
+    add("")
+    add("    def listbox_adicionar_item(self, origem, destino):")
+    add("        lista = getattr(self, destino, None)")
+    add("        if not isinstance(lista, tk.Listbox):")
+    add("            messagebox.showwarning('Listbox', 'Selecione uma Listbox em Campo de resultado.')")
+    add("            return")
+    add("        valor = str(self._valor_componente(origem)).strip() if origem else ''")
+    add("        if not valor:")
+    add("            messagebox.showwarning('Listbox', 'Digite o item que deseja incluir.')")
+    add("            return")
+    add("        lista.insert(tk.END, valor)")
+    add("        self._definir_valor_componente(origem, '')")
+    add("        lista.see(tk.END)")
+    add("        self._atualizar_contadores()")
+    add("")
+    add("    def listbox_excluir_selecionado(self, destino):")
+    add("        lista = getattr(self, destino, None)")
+    add("        if not isinstance(lista, tk.Listbox):")
+    add("            messagebox.showwarning('Listbox', 'Selecione uma Listbox em Campo de resultado.')")
+    add("            return")
+    add("        selecionados = list(lista.curselection())")
+    add("        if not selecionados:")
+    add("            messagebox.showwarning('Listbox', 'Selecione um item da lista para excluir.')")
+    add("            return")
+    add("        for indice in reversed(selecionados):")
+    add("            lista.delete(indice)")
+    add("        self._atualizar_contadores()")
+    add("")
+    add("    def listbox_alterar_selecionado(self, origem, destino):")
+    add("        lista = getattr(self, destino, None)")
+    add("        if not isinstance(lista, tk.Listbox):")
+    add("            messagebox.showwarning('Listbox', 'Selecione uma Listbox em Campo de resultado.')")
+    add("            return")
+    add("        selecionados = list(lista.curselection())")
+    add("        if not selecionados:")
+    add("            messagebox.showwarning('Listbox', 'Selecione um item da lista para alterar.')")
+    add("            return")
+    add("        valor = str(self._valor_componente(origem)).strip() if origem else ''")
+    add("        if not valor:")
+    add("            messagebox.showwarning('Listbox', 'Digite o novo valor do item selecionado.')")
+    add("            return")
+    add("        indice = selecionados[0]")
+    add("        lista.delete(indice)")
+    add("        lista.insert(indice, valor)")
+    add("        lista.selection_clear(0, tk.END)")
+    add("        lista.selection_set(indice)")
+    add("        lista.activate(indice)")
+    add("        lista.see(indice)")
+    add("        self._definir_valor_componente(origem, '')")
+    add("        self._atualizar_contadores()")
+    add("")
+    add("    def listbox_limpar(self, destino):")
+    add("        lista = getattr(self, destino, None)")
+    add("        if not isinstance(lista, tk.Listbox):")
+    add("            messagebox.showwarning('Listbox', 'Selecione uma Listbox em Campo de resultado.')")
+    add("            return")
+    add("        lista.delete(0, tk.END)")
+    add("        self._atualizar_contadores()")
+    add("")
+    add("    def listbox_gerar_sequencia(self, origem, destino):")
+    add("        lista = getattr(self, destino, None)")
+    add("        if not isinstance(lista, tk.Listbox):")
+    add("            messagebox.showwarning('Listbox', 'Selecione uma Listbox em Campo de resultado.')")
+    add("            return")
+    add("        try:")
+    add("            quantidade = int(float(str(self._valor_componente(origem)).replace(',', '.')))")
+    add("        except (TypeError, ValueError):")
+    add("            messagebox.showwarning('Listbox', 'Informe uma quantidade numérica maior que zero.')")
+    add("            return")
+    add("        if quantidade <= 0:")
+    add("            messagebox.showwarning('Listbox', 'Informe uma quantidade maior que zero.')")
+    add("            return")
+    add("        lista.delete(0, tk.END)")
+    add("        for numero in range(1, quantidade + 1):")
+    add("            lista.insert(tk.END, str(numero))")
+    add("        if quantidade:")
+    add("            lista.see(tk.END)")
+    add("            lista.see(0)")
+    add("        self._atualizar_contadores()")
+    add("")
+    add("    def texto_contar(self, origem, destino):")
+    add("        texto = str(self._valor_componente(origem))")
+    add("        palavras = re.findall(r'\\b\\w+\\b', texto, flags=re.UNICODE)")
+    add("        caracteres = len(texto)")
+    add("        sem_espacos = len(re.sub(r'\\s', '', texto))")
+    add("        linhas = 0 if not texto else len(texto.splitlines())")
+    add("        resultado = f'Palavras: {len(palavras)}\\nCaracteres com espaços: {caracteres}\\nCaracteres sem espaços: {sem_espacos}\\nLinhas: {linhas}'")
+    add("        self._definir_valor_componente(destino, resultado)")
+    add("")
+    add("    def texto_localizar_substituir(self, origem, campo_localizar, campo_substituir, destino, destino_contador=''):")
+    add("        texto = str(self._valor_componente(origem))")
+    add("        localizar = str(self._valor_componente(campo_localizar))")
+    add("        substituir = str(self._valor_componente(campo_substituir))")
+    add("        if not localizar:")
+    add("            messagebox.showwarning('Texto', 'Informe o texto que deseja localizar.')")
+    add("            return")
+    add("        quantidade = texto.count(localizar)")
+    add("        novo_texto = texto.replace(localizar, substituir)")
+    add("        self._definir_valor_componente(destino, novo_texto)")
+    add("        if destino_contador:")
+    add("            self._definir_valor_componente(destino_contador, str(quantidade))")
+    add("")
+    add("    def arquivo_txt_abrir(self, destino, destino_caminho=''):")
+    add("        caminho = filedialog.askopenfilename(parent=self, title='Abrir arquivo TXT', filetypes=[('Arquivo de texto', '*.txt'), ('Todos os arquivos', '*.*')])")
+    add("        if not caminho:")
+    add("            return")
+    add("        try:")
+    add("            with open(caminho, 'r', encoding='utf-8') as arquivo:")
+    add("                conteudo = arquivo.read()")
+    add("        except UnicodeDecodeError:")
+    add("            try:")
+    add("                with open(caminho, 'r', encoding='latin-1') as arquivo:")
+    add("                    conteudo = arquivo.read()")
+    add("            except OSError as erro:")
+    add("                messagebox.showerror('Arquivo TXT', f'Não foi possível abrir o arquivo: {erro}')")
+    add("                return")
+    add("        except OSError as erro:")
+    add("            messagebox.showerror('Arquivo TXT', f'Não foi possível abrir o arquivo: {erro}')")
+    add("            return")
+    add("        self._definir_valor_componente(destino, conteudo)")
+    add("        if destino_caminho:")
+    add("            self._definir_valor_componente(destino_caminho, caminho)")
+    add("")
+    add("    def arquivo_txt_salvar(self, origem, campo_caminho=''):")
+    add("        conteudo = str(self._valor_componente(origem))")
+    add("        caminho_atual = str(self._valor_componente(campo_caminho)).strip() if campo_caminho else ''")
+    add("        if caminho_atual:")
+    add("            caminho = filedialog.asksaveasfilename(parent=self, title='Salvar arquivo TXT', initialfile=caminho_atual.split('/')[-1].split('\\\\')[-1], defaultextension='.txt', filetypes=[('Arquivo de texto', '*.txt'), ('Todos os arquivos', '*.*')])")
+    add("        else:")
+    add("            caminho = filedialog.asksaveasfilename(parent=self, title='Salvar arquivo TXT', defaultextension='.txt', filetypes=[('Arquivo de texto', '*.txt'), ('Todos os arquivos', '*.*')])")
+    add("        if not caminho:")
+    add("            return")
+    add("        try:")
+    add("            with open(caminho, 'w', encoding='utf-8') as arquivo:")
+    add("                arquivo.write(conteudo)")
+    add("        except OSError as erro:")
+    add("            messagebox.showerror('Arquivo TXT', f'Não foi possível salvar o arquivo: {erro}')")
+    add("            return")
+    add("        if campo_caminho:")
+    add("            self._definir_valor_componente(campo_caminho, caminho)")
+    add("        messagebox.showinfo('Arquivo TXT', 'Arquivo salvo com sucesso!')")
+    add("")
+    add("    def datas_calcular_intervalo(self, campo_inicio, campo_fim, destino):")
+    add("        inicio_texto = str(self._valor_componente(campo_inicio)).strip()")
+    add("        fim_texto = str(self._valor_componente(campo_fim)).strip()")
+    add("        try:")
+    add("            inicio = datetime.strptime(inicio_texto, '%d/%m/%Y').date()")
+    add("            fim = datetime.strptime(fim_texto, '%d/%m/%Y').date()")
+    add("        except ValueError:")
+    add("            messagebox.showwarning('Datas', 'Informe as duas datas no formato dd/mm/aaaa.')")
+    add("            return")
+    add("        sinal = 1 if fim >= inicio else -1")
+    add("        dias = abs((fim - inicio).days)")
+    add("        semanas, dias_restantes = divmod(dias, 7)")
+    add("        ordem = 'depois' if sinal >= 0 else 'antes'")
+    add("        resultado = f'Dias corridos: {dias}\\nSemanas completas: {semanas}\\nDias restantes: {dias_restantes}\\nA data final está {dias} dia(s) {ordem} da data inicial.'")
+    add("        self._definir_valor_componente(destino, resultado)")
+    add("")
+    add("    def listbox_ordenar(self, destino, reverso=False):")
+    add("        lista = getattr(self, destino, None)")
+    add("        if not isinstance(lista, tk.Listbox):")
+    add("            messagebox.showwarning('Listbox', 'Selecione uma Listbox em Campo de resultado.')")
+    add("            return")
+    add("        itens = list(lista.get(0, tk.END))")
+    add("        itens.sort(key=lambda item: str(item).casefold(), reverse=bool(reverso))")
+    add("        lista.delete(0, tk.END)")
+    add("        for item in itens:")
+    add("            lista.insert(tk.END, item)")
+    add("        self._atualizar_contadores()")
+    add("")
+    add("    def listbox_remover_duplicados(self, destino):")
+    add("        lista = getattr(self, destino, None)")
+    add("        if not isinstance(lista, tk.Listbox):")
+    add("            messagebox.showwarning('Listbox', 'Selecione uma Listbox em Campo de resultado.')")
+    add("            return")
+    add("        vistos = set()")
+    add("        unicos = []")
+    add("        for item in lista.get(0, tk.END):")
+    add("            chave = str(item).casefold()")
+    add("            if chave not in vistos:")
+    add("                vistos.add(chave)")
+    add("                unicos.append(item)")
+    add("        lista.delete(0, tk.END)")
+    add("        for item in unicos:")
+    add("            lista.insert(tk.END, item)")
+    add("        self._atualizar_contadores()")
+    add("")
+    add("    def csv_importar_treeview(self, destino, destino_status=''):")
+    add("        tabela = getattr(self, destino, None)")
+    add("        if not isinstance(tabela, ttk.Treeview):")
+    add("            messagebox.showwarning('CSV', 'Selecione uma Treeview em Campo de resultado.')")
+    add("            return")
+    add("        caminho = filedialog.askopenfilename(parent=self, title='Selecionar arquivo CSV', filetypes=[('Arquivo CSV', '*.csv'), ('Todos os arquivos', '*.*')])")
+    add("        if not caminho:")
+    add("            return")
+    add("        linhas = None")
+    add("        ultimo_erro = None")
+    add("        for codificacao in ('utf-8-sig', 'utf-8', 'latin-1'):")
+    add("            try:")
+    add("                with open(caminho, 'r', encoding=codificacao, newline='') as arquivo:")
+    add("                    amostra = arquivo.read(4096)")
+    add("                    arquivo.seek(0)")
+    add("                    try:")
+    add("                        dialeto = csv.Sniffer().sniff(amostra, delimiters=',;\\t|')")
+    add("                        leitor = csv.reader(arquivo, dialeto)")
+    add("                    except csv.Error:")
+    add("                        leitor = csv.reader(arquivo, delimiter=';')")
+    add("                    linhas = list(leitor)")
+    add("                break")
+    add("            except (UnicodeDecodeError, OSError) as erro:")
+    add("                ultimo_erro = erro")
+    add("        if linhas is None:")
+    add("            messagebox.showerror('CSV', f'Não foi possível abrir o arquivo: {ultimo_erro}')")
+    add("            return")
+    add("        linhas = [linha for linha in linhas if any(str(valor).strip() for valor in linha)]")
+    add("        if not linhas:")
+    add("            messagebox.showwarning('CSV', 'O arquivo CSV está vazio.')")
+    add("            return")
+    add("        cabecalhos = [str(valor).strip() or f'Coluna {indice + 1}' for indice, valor in enumerate(linhas[0])]")
+    add("        ids = [f'csv_{indice}' for indice in range(len(cabecalhos))]")
+    add("        tabela.delete(*tabela.get_children())")
+    add("        tabela['columns'] = ids")
+    add("        tabela['show'] = 'headings'")
+    add("        for coluna, titulo in zip(ids, cabecalhos):")
+    add("            tabela.heading(coluna, text=titulo)")
+    add("            tabela.column(coluna, width=max(90, min(240, len(titulo) * 12 + 35)), anchor='w')")
+    add("        total = 0")
+    add("        for linha in linhas[1:]:")
+    add("            valores = list(linha[:len(ids)]) + [''] * max(0, len(ids) - len(linha))")
+    add("            tabela.insert('', 'end', values=valores[:len(ids)])")
+    add("            total += 1")
+    add("        if destino_status:")
+    add("            self._definir_valor_componente(destino_status, f'{total} linha(s) importada(s) | {len(ids)} coluna(s)')")
+    add("")
+    add("    def lista_calcular_estatisticas(self, origem, destino):")
+    add("        texto = str(self._valor_componente(origem)).strip()")
+    add("        partes = [p for p in re.split(r'[;,\\s]+', texto) if p]")
+    add("        numeros = []")
+    add("        invalidos = []")
+    add("        for parte in partes:")
+    add("            try:")
+    add("                numeros.append(float(parte.replace(',', '.')))")
+    add("            except ValueError:")
+    add("                invalidos.append(parte)")
+    add("        if not numeros:")
+    add("            messagebox.showwarning('Estatísticas', 'Informe pelo menos um número válido.')")
+    add("            return")
+    add("        total = sum(numeros)")
+    add("        media = total / len(numeros)")
+    add("        ordenados = sorted(numeros)")
+    add("        meio = len(ordenados) // 2")
+    add("        mediana = ordenados[meio] if len(ordenados) % 2 else (ordenados[meio - 1] + ordenados[meio]) / 2")
+    add("        resultado = f'Quantidade: {len(numeros)}\\nSoma: {total:g}\\nMédia: {media:.2f}\\nMediana: {mediana:g}\\nMenor: {min(numeros):g}\\nMaior: {max(numeros):g}'")
+    add("        if invalidos:")
+    add("            resultado += '\\nIgnorados: ' + ', '.join(invalidos[:10])")
+    add("        self._definir_valor_componente(destino, resultado)")
+    add("")
+    add("    def texto_converter(self, origem, destino, modo):")
+    add("        texto = str(self._valor_componente(origem))")
+    add("        if modo == 'maiusculas':")
+    add("            resultado = texto.upper()")
+    add("        elif modo == 'minusculas':")
+    add("            resultado = texto.lower()")
+    add("        else:")
+    add("            resultado = texto.title()")
+    add("        self._definir_valor_componente(destino, resultado)")
+    add("")
+    add("    def calendario_gerar_mes(self, campo_mes, campo_ano, destino):")
+    add("        try:")
+    add("            mes = int(str(self._valor_componente(campo_mes)).strip())")
+    add("            ano = int(str(self._valor_componente(campo_ano)).strip())")
+    add("        except ValueError:")
+    add("            messagebox.showwarning('Calendário', 'Informe mês e ano com números válidos.')")
+    add("            return")
+    add("        if mes < 1 or mes > 12 or ano < 1 or ano > 9999:")
+    add("            messagebox.showwarning('Calendário', 'Informe um mês de 1 a 12 e um ano válido.')")
+    add("            return")
+    add("        meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']")
+    add("        semanas = calendar.Calendar(firstweekday=0).monthdayscalendar(ano, mes)")
+    add("        linhas = [f'{meses[mes - 1]} {ano}'.center(27), 'Seg Ter Qua Qui Sex Sáb Dom']")
+    add("        for semana in semanas:")
+    add("            linhas.append(' '.join('   ' if dia == 0 else f'{dia:>3}' for dia in semana))")
+    add("        self._definir_valor_componente(destino, '\\n'.join(linhas))")
+    add("")
+    add("    def senha_analisar_forca(self, origem, destino):")
+    add("        senha = str(self._valor_componente(origem))")
+    add("        criterios = [")
+    add("            ('Pelo menos 8 caracteres', len(senha) >= 8),")
+    add("            ('Pelo menos 12 caracteres', len(senha) >= 12),")
+    add("            ('Letra maiúscula', bool(re.search(r'[A-ZÁÉÍÓÚÂÊÔÃÕÇ]', senha))),")
+    add("            ('Letra minúscula', bool(re.search(r'[a-záéíóúâêôãõç]', senha))),")
+    add("            ('Número', bool(re.search(r'\\d', senha))),")
+    add("            ('Símbolo', bool(re.search(r'[^\\w\\s]', senha))),")
+    add("        ]")
+    add("        pontos = sum(1 for _nome, ok in criterios if ok)")
+    add("        if not senha:")
+    add("            nivel = 'Nenhuma senha informada'")
+    add("        elif pontos <= 2:")
+    add("            nivel = 'Fraca'")
+    add("        elif pontos <= 4:")
+    add("            nivel = 'Média'")
+    add("        elif pontos == 5:")
+    add("            nivel = 'Forte'")
+    add("        else:")
+    add("            nivel = 'Muito forte'")
+    add("        linhas = [f'Classificação: {nivel}', f'Comprimento: {len(senha)} caracteres', '']")
+    add("        for nome, ok in criterios:")
+    add("            linhas.append(('[OK] ' if ok else '[  ] ') + nome)")
+    add("        self._definir_valor_componente(destino, '\\n'.join(linhas))")
     add("")
     add("    def validar_formulario(self):")
 
@@ -5523,6 +6057,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
         # `utilizaveis` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a utilizaveis.
         # `}` = fecha o dicionário, conjunto ou estrutura de compreensão.
         mapa_widget_campo = {widget: campo for campo, widget in utilizaveis}
+        mapa_widget_campo.update(mapa_radios)
 
         # Armazena ou associa em `todos_widgets` o valor ou resultado definido nesta linha.
         # `todos_widgets` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a todos widgets.
@@ -6517,6 +7052,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
         # `utilizaveis` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a utilizaveis.
         # `}` = fecha o dicionário, conjunto ou estrutura de compreensão.
         mapa_widget_campo = {widget: campo for campo, widget in utilizaveis}
+        mapa_widget_campo.update(mapa_radios)
 
         # Armazena ou associa em `todos_widgets` o valor ou resultado definido nesta linha.
         # `todos_widgets` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a todos widgets.
@@ -6826,7 +7362,6 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
         # Executa `add` com os argumentos informados para realizar a operação correspondente.
         # `add` = função, método ou classe chamada para executar a operação relacionada a add.
         # `(` = abre a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
-        # `        messagebox.showinfo('SQLite', 'Registro atualizado com sucesso!')` = texto literal utilizado nesta instrução.
         # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
         add("        messagebox.showinfo('SQLite', 'Registro atualizado com sucesso!')")
 
@@ -7058,7 +7593,7 @@ def _gerar_classe_tela(projeto: Projeto, tela: Tela, indice: int) -> str:
         for c in tela.componentes
 
         # Verifica a condição informada e executa o bloco seguinte somente quando ela for verdadeira.
-        if c.tipo in {
+        if (not getattr(c, "bloqueado", False)) and c.tipo in {
 
             # Fornece o texto literal utilizado como argumento, valor ou conteúdo da instrução iniciada nas linhas anteriores.
             # `Entry` = texto literal utilizado nesta instrução.
@@ -10012,6 +10547,7 @@ def gerar_codigo(projeto: Projeto) -> str:
         "import string",
         "import time",
         "import calendar",
+        "import csv",
         "from datetime import datetime, date",
         "from tkinter import ttk, messagebox, scrolledtext, filedialog",
 
@@ -12239,7 +12775,6 @@ def gerar_codigo(projeto: Projeto) -> str:
         "                    pass",
 
         # Fornece o texto literal utilizado como argumento, valor ou conteúdo da instrução iniciada nas linhas anteriores.
-        # `            messagebox.showinfo('Editar', 'Registro atualizado com sucesso!')` = texto literal utilizado nesta instrução.
         # `,` = separa argumentos, parâmetros, propriedades ou elementos desta estrutura.
         "            messagebox.showinfo('Editar', 'Registro atualizado com sucesso!')",
 
@@ -13338,11 +13873,11 @@ def _centralizar_areas_das_telas(codigo, projeto):
 
             # Adiciona ou configura este valor na estrutura ou chamada iniciada nas linhas anteriores.
             # `(` = abre a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
-            # `ttk.Scale(self,` = texto literal utilizado nesta instrução.
+            # `tk.Scale(self,` = texto literal utilizado nesta instrução.
             # `,` = separa argumentos, parâmetros, propriedades ou elementos desta estrutura.
-            # `ttk.Scale(self.area,` = texto literal utilizado nesta instrução.
+            # `tk.Scale(self.area,` = texto literal utilizado nesta instrução.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
-            ("ttk.Scale(self,", "ttk.Scale(self.area,"),
+            ("tk.Scale(self,", "tk.Scale(self.area,"),
 
             # Adiciona ou configura este valor na estrutura ou chamada iniciada nas linhas anteriores.
             # `(` = abre a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
@@ -15255,3 +15790,1612 @@ def gerar_codigo(projeto: Projeto) -> str:
     # `projeto` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a projeto.
     # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
     return _gerar_codigo_modelos_e_relacoes_base(projeto)
+
+# Recursos do exemplo de criação de rascunhos do Outlook a partir do Excel.
+def _mapa_recursos_outlook(projeto: Projeto):
+    if not projeto.telas:
+        return {}
+    tela = projeto.telas[0]
+    nomes = {}
+    usados = set()
+    for pos, comp in enumerate(tela.componentes, 1):
+        nome = nome_python(comp.nome or f"{comp.tipo}_{pos}", f"{comp.tipo.lower()}_{pos}")
+        base = nome
+        contador = 2
+        while nome in usados:
+            nome = f"{base}_{contador}"
+            contador += 1
+        usados.add(nome)
+        nomes[comp.id] = nome
+    # Nomes padronizados também identificam a função especial do componente.
+    # Isso reduz configurações manuais nos projetos 45, 46 e 47.
+    papeis_por_nome = {
+        "caminho_excel": "caminho_excel",
+        "planilha_excel": "planilha_excel",
+        "lista_colunas_excel": "colunas_excel",
+        "email_to": "email_to",
+        "email_cc": "email_cc",
+        "email_bcc": "email_bcc",
+        "assunto_email": "assunto",
+        "pasta_anexos": "pasta_anexos",
+        "regra_anexo": "regra_anexo",
+        "exigir_anexo": "exigir_anexo",
+        "tamanho_texto_email": "tamanho_texto",
+        "corpo_email": "corpo",
+        "lista_anexos_fixos": "anexos_fixos",
+        "status_outlook": "status",
+        "qe46_caminho_excel": "qe46_caminho_excel",
+        "qe46_aba": "qe46_aba",
+        "qe46_lista_colunas": "qe46_lista_colunas",
+        "qe46_coluna": "qe46_coluna",
+        "qe46_resumo": "qe46_resumo",
+        "qe46_pasta_saida": "qe46_pasta_saida",
+        "qe46_nome_geral": "qe46_nome_geral",
+        "qe46_nome_individual": "qe46_nome_individual",
+        "qe46_status": "qe46_status",
+        "qe47_caminho_excel": "qe47_caminho_excel",
+        "qe47_lista_abas": "qe47_lista_abas",
+        "qe47_lista_colunas": "qe47_lista_colunas",
+        "qe47_coluna": "qe47_coluna",
+        "qe47_resumo": "qe47_resumo",
+        "qe47_pasta_saida": "qe47_pasta_saida",
+        "qe47_nome_arquivo": "qe47_nome_arquivo",
+        "qe47_status": "qe47_status",
+    }
+
+    recursos = {}
+    for comp in tela.componentes:
+        papel = (getattr(comp, "recurso_outlook", "") or "").strip()
+        if not papel:
+            papel = ACOES_RECURSOS_ESPECIAIS.get((getattr(comp, "acao", "") or "").strip(), "")
+        if not papel:
+            papel = papeis_por_nome.get((getattr(comp, "nome", "") or "").strip(), "")
+        if papel:
+            recursos[papel] = nomes[comp.id]
+    return recursos
+
+
+def _adicionar_recursos_outlook_excel(codigo: str, projeto: Projeto) -> str:
+    r = _mapa_recursos_outlook(projeto)
+    obrigatorios = {
+        "caminho_excel", "selecionar_excel", "planilha_excel", "colunas_excel",
+        "email_to", "email_cc", "email_bcc", "assunto", "pasta_anexos",
+        "selecionar_pasta_anexos", "regra_anexo", "exigir_anexo", "negrito",
+        "italico", "sublinhado", "cor_texto", "tamanho_texto", "aplicar_tamanho",
+        "link", "imagem", "corpo", "anexos_fixos", "adicionar_anexo",
+        "remover_anexo", "criar_rascunhos", "status",
+    }
+    if not obrigatorios.issubset(r):
+        return codigo
+
+    if "import os\n" not in codigo:
+        codigo = codigo.replace("import sqlite3\n", "import sqlite3\nimport os\n", 1)
+
+    bloco = r'''
+        self._configurar_outlook_excel()
+
+    def _configurar_outlook_excel(self):
+        self._dados_excel_outlook = []
+        self._cabecalhos_excel_outlook = []
+        self._coluna_arrastada_outlook = ""
+        self._links_outlook = {}
+        self._cores_outlook = {}
+        self._tamanhos_outlook = {}
+        self._imagens_outlook = {}
+        self._fontes_outlook = []
+
+        getattr(self, '__SELECIONAR_EXCEL__').configure(command=self._selecionar_excel_outlook)
+        getattr(self, '__SELECIONAR_PASTA__').configure(command=self._selecionar_pasta_anexos_outlook)
+        getattr(self, '__NEGRITO__').configure(command=lambda: self._alternar_tag_outlook('outlook_negrito'))
+        getattr(self, '__ITALICO__').configure(command=lambda: self._alternar_tag_outlook('outlook_italico'))
+        getattr(self, '__SUBLINHADO__').configure(command=lambda: self._alternar_tag_outlook('outlook_sublinhado'))
+        getattr(self, '__COR_TEXTO__').configure(command=self._aplicar_cor_outlook)
+        getattr(self, '__APLICAR_TAMANHO__').configure(command=self._aplicar_tamanho_outlook)
+        getattr(self, '__LINK__').configure(command=self._aplicar_link_outlook)
+        getattr(self, '__IMAGEM__').configure(command=self._inserir_imagem_outlook)
+        getattr(self, '__ADICIONAR_ANEXO__').configure(command=self._adicionar_anexo_fixo_outlook)
+        getattr(self, '__REMOVER_ANEXO__').configure(command=self._remover_anexo_fixo_outlook)
+        getattr(self, '__CRIAR_RASCUNHOS__').configure(command=self._criar_rascunhos_outlook)
+
+        combo_planilha = getattr(self, '__PLANILHA_EXCEL__')
+        combo_planilha.bind('<<ComboboxSelected>>', lambda e: self._carregar_aba_excel_outlook())
+
+        lista_colunas = getattr(self, '__COLUNAS_EXCEL__')
+        lista_colunas.bind('<ButtonPress-1>', self._iniciar_arraste_coluna_outlook)
+        lista_colunas.bind('<ButtonRelease-1>', self._finalizar_arraste_coluna_outlook)
+
+        corpo = getattr(self, '__CORPO__')
+        corpo.tag_configure('outlook_negrito', font=self._fonte_email_outlook(weight='bold'))
+        corpo.tag_configure('outlook_italico', font=self._fonte_email_outlook(slant='italic'))
+        corpo.tag_configure('outlook_sublinhado', underline=1)
+
+        if not str(self._valor_componente('__TAMANHO_TEXTO__')).strip():
+            self._definir_valor_componente('__TAMANHO_TEXTO__', '11')
+        if not str(self._valor_componente('__ASSUNTO__')).strip():
+            self._definir_valor_componente('__ASSUNTO__', 'Documento de {Nome}')
+        if not str(self._valor_componente('__REGRA_ANEXO__')).strip():
+            self._definir_valor_componente('__REGRA_ANEXO__', '{Codigo}_documento.pdf')
+        var_exigir = getattr(self, 'var___EXIGIR_ANEXO__', None)
+        if var_exigir is not None:
+            var_exigir.set(True)
+        if not corpo.get('1.0', 'end-1c').strip():
+            corpo.insert('1.0', 'Olá {Nome},\n\nSegue o documento referente ao seu cadastro.\n\nAtenciosamente,\nEquipe')
+        self._status_outlook('pronto para selecionar uma planilha.')
+
+    def _fonte_email_outlook(self, **alteracoes):
+        import tkinter.font as tkfont
+        corpo = getattr(self, '__CORPO__')
+        fonte = tkfont.Font(font=corpo.cget('font'))
+        fonte.configure(**alteracoes)
+        self._fontes_outlook.append(fonte)
+        return fonte
+
+    def _status_outlook(self, texto):
+        widget = getattr(self, '__STATUS__', None)
+        if widget is not None:
+            try:
+                widget.configure(text='Status: ' + str(texto))
+            except tk.TclError:
+                pass
+
+    def _selecionar_excel_outlook(self):
+        try:
+            from openpyxl import load_workbook
+        except ImportError:
+            messagebox.showerror(
+                'Excel',
+                'Para usar planilhas do Excel, instale a biblioteca openpyxl com:\n\npip install openpyxl',
+            )
+            return
+        caminho = filedialog.askopenfilename(
+            parent=self,
+            title='Selecionar planilha do Excel',
+            filetypes=[('Planilhas do Excel', '*.xlsx *.xlsm'), ('Arquivo .xlsx', '*.xlsx'), ('Todos os arquivos', '*.*')],
+        )
+        if not caminho:
+            return
+        self._definir_valor_componente('__CAMINHO_EXCEL__', caminho)
+        try:
+            wb = load_workbook(caminho, read_only=True, data_only=True)
+            nomes_abas = list(wb.sheetnames)
+            wb.close()
+        except Exception as erro:
+            messagebox.showerror('Excel', f'Não foi possível abrir a planilha.\n\n{erro}')
+            return
+        combo = getattr(self, '__PLANILHA_EXCEL__')
+        combo.configure(values=nomes_abas)
+        if nomes_abas:
+            self._definir_valor_componente('__PLANILHA_EXCEL__', nomes_abas[0])
+            self._carregar_aba_excel_outlook()
+        else:
+            self._status_outlook('a planilha não possui abas disponíveis.')
+
+    def _carregar_aba_excel_outlook(self):
+        try:
+            from openpyxl import load_workbook
+        except ImportError:
+            return
+        caminho = str(self._valor_componente('__CAMINHO_EXCEL__')).strip()
+        aba = str(self._valor_componente('__PLANILHA_EXCEL__')).strip()
+        if not caminho or not aba:
+            return
+        try:
+            wb = load_workbook(caminho, read_only=True, data_only=True)
+            if aba not in wb.sheetnames:
+                wb.close()
+                messagebox.showwarning('Excel', 'A aba selecionada não existe mais na planilha.')
+                return
+            ws = wb[aba]
+            linhas = ws.iter_rows(values_only=True)
+            primeira = next(linhas, None)
+            if primeira is None:
+                wb.close()
+                self._cabecalhos_excel_outlook = []
+                self._dados_excel_outlook = []
+                self._preencher_lista_colunas_outlook([])
+                self._status_outlook('a aba selecionada está vazia.')
+                return
+
+            cabecalhos = []
+            usados = {}
+            for indice, valor in enumerate(primeira, 1):
+                nome = str(valor).strip() if valor is not None else ''
+                if not nome:
+                    nome = f'Coluna{indice}'
+                quantidade = usados.get(nome.casefold(), 0) + 1
+                usados[nome.casefold()] = quantidade
+                if quantidade > 1:
+                    nome = f'{nome}_{quantidade}'
+                cabecalhos.append(nome)
+
+            dados = []
+            for valores in linhas:
+                valores = list(valores[:len(cabecalhos)])
+                if len(valores) < len(cabecalhos):
+                    valores.extend([None] * (len(cabecalhos) - len(valores)))
+                if not any(valor not in (None, '') for valor in valores):
+                    continue
+                dados.append(dict(zip(cabecalhos, valores)))
+            wb.close()
+        except Exception as erro:
+            messagebox.showerror('Excel', f'Não foi possível ler os dados da planilha.\n\n{erro}')
+            return
+
+        self._cabecalhos_excel_outlook = cabecalhos
+        self._dados_excel_outlook = dados
+        self._preencher_lista_colunas_outlook(cabecalhos)
+
+        if not str(self._valor_componente('__EMAIL_TO__')).strip():
+            coluna_email = next(
+                (c for c in cabecalhos if 'email' in c.casefold().replace('-', '').replace('_', '')),
+                '',
+            )
+            if coluna_email:
+                self._definir_valor_componente('__EMAIL_TO__', '{' + coluna_email + '}')
+        self._status_outlook(f'{len(dados)} linha(s) carregada(s) da aba {aba}.')
+
+    def _preencher_lista_colunas_outlook(self, cabecalhos):
+        lista = getattr(self, '__COLUNAS_EXCEL__')
+        lista.delete(0, tk.END)
+        for cabecalho in cabecalhos:
+            lista.insert(tk.END, cabecalho)
+
+    def _iniciar_arraste_coluna_outlook(self, evento):
+        lista = evento.widget
+        if lista.size() <= 0:
+            self._coluna_arrastada_outlook = ''
+            return
+        indice = lista.nearest(evento.y)
+        if indice < 0 or indice >= lista.size():
+            self._coluna_arrastada_outlook = ''
+            return
+        lista.selection_clear(0, tk.END)
+        lista.selection_set(indice)
+        self._coluna_arrastada_outlook = str(lista.get(indice))
+        self._status_outlook(f'arrastando a coluna {self._coluna_arrastada_outlook}.')
+
+    def _finalizar_arraste_coluna_outlook(self, evento):
+        coluna = str(getattr(self, '_coluna_arrastada_outlook', '') or '').strip()
+        self._coluna_arrastada_outlook = ''
+        if not coluna:
+            return
+        alvo = self.winfo_containing(evento.x_root, evento.y_root)
+        widgets = {
+            getattr(self, '__EMAIL_TO__'): 'destinatario',
+            getattr(self, '__EMAIL_CC__'): 'destinatario',
+            getattr(self, '__EMAIL_BCC__'): 'destinatario',
+            getattr(self, '__ASSUNTO__'): 'texto',
+            getattr(self, '__REGRA_ANEXO__'): 'texto',
+            getattr(self, '__PASTA_ANEXOS__'): 'texto',
+            getattr(self, '__CORPO__'): 'corpo',
+        }
+        while alvo is not None and alvo not in widgets:
+            alvo = getattr(alvo, 'master', None)
+        if alvo not in widgets:
+            self._status_outlook('solte a coluna sobre Para, CC, CCO, Assunto, Corpo ou regra do anexo.')
+            return
+        marcador = '{' + coluna + '}'
+        tipo = widgets[alvo]
+        if tipo == 'corpo':
+            alvo.insert(tk.INSERT, marcador)
+            alvo.focus_set()
+        elif tipo == 'destinatario':
+            atual = alvo.get().strip()
+            if atual:
+                alvo.insert(tk.END, ';' + marcador)
+            else:
+                alvo.insert(0, marcador)
+            alvo.focus_set()
+        else:
+            try:
+                posicao = alvo.index(tk.INSERT)
+            except tk.TclError:
+                posicao = tk.END
+            alvo.insert(posicao, marcador)
+            alvo.focus_set()
+        self._status_outlook(f'coluna {coluna} adicionada ao campo escolhido.')
+
+    def _intervalo_selecionado_outlook(self):
+        corpo = getattr(self, '__CORPO__')
+        try:
+            return corpo.index('sel.first'), corpo.index('sel.last')
+        except tk.TclError:
+            messagebox.showinfo('Formatação', 'Selecione primeiro o trecho do corpo do e-mail que deseja formatar.')
+            return None
+
+    def _alternar_tag_outlook(self, tag):
+        intervalo = self._intervalo_selecionado_outlook()
+        if not intervalo:
+            return
+        corpo = getattr(self, '__CORPO__')
+        inicio, fim = intervalo
+        if tag in corpo.tag_names(inicio):
+            corpo.tag_remove(tag, inicio, fim)
+        else:
+            corpo.tag_add(tag, inicio, fim)
+        corpo.focus_set()
+
+    def _aplicar_cor_outlook(self):
+        intervalo = self._intervalo_selecionado_outlook()
+        if not intervalo:
+            return
+        from tkinter import colorchooser
+        _rgb, cor = colorchooser.askcolor(title='Cor do texto do e-mail', parent=self)
+        if not cor:
+            return
+        corpo = getattr(self, '__CORPO__')
+        tag = f'outlook_cor_{len(self._cores_outlook) + 1}'
+        self._cores_outlook[tag] = cor
+        corpo.tag_configure(tag, foreground=cor)
+        corpo.tag_add(tag, *intervalo)
+        corpo.focus_set()
+
+    def _aplicar_tamanho_outlook(self):
+        intervalo = self._intervalo_selecionado_outlook()
+        if not intervalo:
+            return
+        try:
+            tamanho = int(str(self._valor_componente('__TAMANHO_TEXTO__')).strip())
+        except (TypeError, ValueError):
+            messagebox.showwarning('Tamanho', 'Escolha um tamanho de fonte válido.')
+            return
+        if tamanho < 6 or tamanho > 72:
+            messagebox.showwarning('Tamanho', 'Use um tamanho de fonte entre 6 e 72.')
+            return
+        corpo = getattr(self, '__CORPO__')
+        tag = f'outlook_tamanho_{len(self._tamanhos_outlook) + 1}'
+        self._tamanhos_outlook[tag] = tamanho
+        corpo.tag_configure(tag, font=self._fonte_email_outlook(size=tamanho))
+        corpo.tag_add(tag, *intervalo)
+        corpo.focus_set()
+
+    def _aplicar_link_outlook(self):
+        intervalo = self._intervalo_selecionado_outlook()
+        if not intervalo:
+            return
+        from tkinter import simpledialog
+        url = simpledialog.askstring(
+            'Inserir link',
+            'Informe o endereço do link. Pode usar uma coluna, por exemplo:\nhttps://site.com/cliente/{Codigo}',
+            parent=self,
+        )
+        if not url:
+            return
+        corpo = getattr(self, '__CORPO__')
+        tag = f'outlook_link_{len(self._links_outlook) + 1}'
+        self._links_outlook[tag] = url.strip()
+        corpo.tag_configure(tag, foreground='#0563C1', underline=1)
+        corpo.tag_add(tag, *intervalo)
+        corpo.focus_set()
+
+    def _inserir_imagem_outlook(self):
+        caminho = filedialog.askopenfilename(
+            parent=self,
+            title='Selecionar imagem para o corpo do e-mail',
+            filetypes=[('Imagens', '*.png *.jpg *.jpeg *.gif *.bmp'), ('Todos os arquivos', '*.*')],
+        )
+        if not caminho:
+            return
+        corpo = getattr(self, '__CORPO__')
+        tag = f'outlook_imagem_{len(self._imagens_outlook) + 1}'
+        self._imagens_outlook[tag] = caminho
+        marcador = f'[Imagem: {os.path.basename(caminho)}]'
+        corpo.insert(tk.INSERT, marcador, (tag,))
+        corpo.tag_configure(tag, background='#E8F0FE', foreground='#174EA6')
+        corpo.focus_set()
+
+    def _selecionar_pasta_anexos_outlook(self):
+        caminho = filedialog.askdirectory(parent=self, title='Selecionar pasta dos anexos')
+        if caminho:
+            self._definir_valor_componente('__PASTA_ANEXOS__', caminho)
+
+    def _adicionar_anexo_fixo_outlook(self):
+        caminhos = filedialog.askopenfilenames(parent=self, title='Selecionar anexos fixos')
+        if not caminhos:
+            return
+        lista = getattr(self, '__ANEXOS_FIXOS__')
+        atuais = set(lista.get(0, tk.END))
+        for caminho in caminhos:
+            if caminho not in atuais:
+                lista.insert(tk.END, caminho)
+                atuais.add(caminho)
+
+    def _remover_anexo_fixo_outlook(self):
+        lista = getattr(self, '__ANEXOS_FIXOS__')
+        selecao = list(lista.curselection())
+        for indice in reversed(selecao):
+            lista.delete(indice)
+
+    def _valor_excel_outlook(self, valor):
+        if valor is None:
+            return ''
+        if isinstance(valor, datetime):
+            return valor.strftime('%d/%m/%Y %H:%M:%S')
+        if isinstance(valor, date):
+            return valor.strftime('%d/%m/%Y')
+        if isinstance(valor, float) and valor.is_integer():
+            return str(int(valor))
+        return str(valor)
+
+    def _preencher_modelo_outlook(self, modelo, linha):
+        modelo = '' if modelo is None else str(modelo)
+        def substituir(casamento):
+            chave = casamento.group(1).strip()
+            if chave in linha:
+                return self._valor_excel_outlook(linha.get(chave))
+            chave_cf = chave.casefold()
+            for nome, valor in linha.items():
+                if str(nome).casefold() == chave_cf:
+                    return self._valor_excel_outlook(valor)
+            return casamento.group(0)
+        return re.sub(r'\{([^{}]+)\}', substituir, modelo)
+
+    def _texto_html_outlook(self, texto, linha):
+        import html
+        texto = '' if texto is None else str(texto)
+        partes = []
+        posicao = 0
+        for casamento in re.finditer(r'\{([^{}]+)\}', texto):
+            partes.append(html.escape(texto[posicao:casamento.start()]))
+            chave = casamento.group(1).strip()
+            valor = casamento.group(0)
+            if chave in linha:
+                valor = self._valor_excel_outlook(linha.get(chave))
+            else:
+                chave_cf = chave.casefold()
+                for nome, conteudo in linha.items():
+                    if str(nome).casefold() == chave_cf:
+                        valor = self._valor_excel_outlook(conteudo)
+                        break
+            partes.append(html.escape(str(valor)))
+            posicao = casamento.end()
+        partes.append(html.escape(texto[posicao:]))
+        return ''.join(partes).replace('\r\n', '\n').replace('\r', '\n').replace('\n', '<br>')
+
+    def _corpo_html_outlook(self, linha):
+        import html
+        corpo = getattr(self, '__CORPO__')
+        eventos = corpo.dump('1.0', 'end-1c', text=True, tag=True)
+        ativos = []
+        saida = []
+        imagens = []
+        imagens_emitidas = set()
+        for tipo, valor, _indice in eventos:
+            if tipo == 'tagon':
+                if valor not in ativos:
+                    ativos.append(valor)
+                continue
+            if tipo == 'tagoff':
+                if valor in ativos:
+                    ativos.remove(valor)
+                continue
+            if tipo != 'text':
+                continue
+
+            tag_imagem = next((tag for tag in ativos if tag in self._imagens_outlook), None)
+            if tag_imagem:
+                if tag_imagem not in imagens_emitidas:
+                    caminho = self._imagens_outlook[tag_imagem]
+                    cid = f'gerador_outlook_{len(imagens) + 1}@imagem'
+                    imagens.append((caminho, cid))
+                    imagens_emitidas.add(tag_imagem)
+                    saida.append(f'<br><img src="cid:{html.escape(cid, quote=True)}" style="max-width:100%;height:auto;"><br>')
+                continue
+
+            trecho = self._texto_html_outlook(valor, linha)
+            estilos = []
+            for tag in ativos:
+                if tag in self._cores_outlook:
+                    estilos.append('color:' + self._cores_outlook[tag])
+                if tag in self._tamanhos_outlook:
+                    estilos.append('font-size:' + str(self._tamanhos_outlook[tag]) + 'pt')
+            if estilos:
+                trecho = '<span style="' + ';'.join(estilos) + '">' + trecho + '</span>'
+            if 'outlook_sublinhado' in ativos:
+                trecho = '<u>' + trecho + '</u>'
+            if 'outlook_italico' in ativos:
+                trecho = '<em>' + trecho + '</em>'
+            if 'outlook_negrito' in ativos:
+                trecho = '<strong>' + trecho + '</strong>'
+            tag_link = next((tag for tag in ativos if tag in self._links_outlook), None)
+            if tag_link:
+                url = self._preencher_modelo_outlook(self._links_outlook[tag_link], linha)
+                trecho = '<a href="' + html.escape(url, quote=True) + '">' + trecho + '</a>'
+            saida.append(trecho)
+
+        html_corpo = '<html><body style="font-family:Segoe UI,Arial,sans-serif;font-size:11pt;">' + ''.join(saida) + '</body></html>'
+        return html_corpo, imagens
+
+    def _caminhos_anexos_outlook(self, linha):
+        pasta_modelo = str(self._valor_componente('__PASTA_ANEXOS__')).strip()
+        pasta = self._preencher_modelo_outlook(pasta_modelo, linha).strip()
+        regra = str(self._valor_componente('__REGRA_ANEXO__')).strip()
+        regras = [item.strip() for item in re.split(r'[;\n]+', regra) if item.strip()]
+        caminhos = []
+        ausentes = []
+
+        for modelo in regras:
+            relativo = self._preencher_modelo_outlook(modelo, linha).strip()
+            if not relativo:
+                continue
+            caminho = relativo if os.path.isabs(relativo) else os.path.join(pasta, relativo) if pasta else relativo
+            caminho = os.path.abspath(os.path.expandvars(os.path.expanduser(caminho)))
+            if os.path.isfile(caminho):
+                caminhos.append(caminho)
+            else:
+                ausentes.append(caminho)
+
+        lista = getattr(self, '__ANEXOS_FIXOS__')
+        for caminho in lista.get(0, tk.END):
+            caminho = os.path.abspath(os.path.expandvars(os.path.expanduser(str(caminho))))
+            if os.path.isfile(caminho):
+                caminhos.append(caminho)
+            else:
+                ausentes.append(caminho)
+
+        unicos = []
+        vistos = set()
+        for caminho in caminhos:
+            chave = os.path.normcase(os.path.normpath(caminho))
+            if chave not in vistos:
+                vistos.add(chave)
+                unicos.append(caminho)
+        return unicos, ausentes
+
+    def _obter_outlook_aplicacao(self):
+        import time
+        import pythoncom
+        import win32com.client as win32
+
+        pythoncom.CoInitialize()
+        ultimo_erro = None
+        for _tentativa in range(6):
+            try:
+                try:
+                    outlook = win32.GetActiveObject('Outlook.Application')
+                except Exception:
+                    outlook = win32.Dispatch('Outlook.Application')
+                _ = outlook.Session
+                return outlook
+            except Exception as erro:
+                ultimo_erro = erro
+                time.sleep(0.35)
+        if ultimo_erro is not None:
+            raise ultimo_erro
+        raise RuntimeError('Não foi possível acessar o Outlook.')
+
+    def _criar_item_outlook(self, outlook):
+        import time
+
+        ultimo_erro = None
+        for _tentativa in range(6):
+            try:
+                return outlook.CreateItem(0)
+            except Exception as erro:
+                ultimo_erro = erro
+                time.sleep(0.35)
+        if ultimo_erro is not None:
+            raise ultimo_erro
+        raise RuntimeError('Não foi possível criar o item do Outlook.')
+
+    def _criar_rascunhos_outlook(self):
+        if os.name != 'nt':
+            messagebox.showwarning(
+                'Outlook',
+                'A criação de rascunhos pelo Outlook requer o Windows e o Outlook clássico instalado no computador.',
+            )
+            return
+        if not self._dados_excel_outlook:
+            messagebox.showwarning('Outlook', 'Selecione uma planilha do Excel com pelo menos uma linha de dados.')
+            return
+        modelo_para = str(self._valor_componente('__EMAIL_TO__')).strip()
+        if not modelo_para:
+            messagebox.showwarning('Outlook', 'Informe o campo Para (.To). Você pode arrastar uma coluna do Excel para ele.')
+            return
+        try:
+            import win32com.client as win32
+        except ImportError:
+            messagebox.showerror(
+                'Outlook',
+                'Para criar rascunhos no Outlook, instale a biblioteca pywin32 com:\n\npip install pywin32',
+            )
+            return
+        try:
+            outlook = self._obter_outlook_aplicacao()
+        except Exception as erro:
+            messagebox.showerror(
+                'Outlook',
+                'Não foi possível acessar o Outlook. Verifique se o Outlook clássico para Windows está instalado e configurado.\n\n' + str(erro),
+            )
+            return
+
+        modelo_cc = str(self._valor_componente('__EMAIL_CC__')).strip()
+        modelo_bcc = str(self._valor_componente('__EMAIL_BCC__')).strip()
+        modelo_assunto = str(self._valor_componente('__ASSUNTO__')).strip()
+        var_exigir = getattr(self, 'var___EXIGIR_ANEXO__', None)
+        exigir_anexo = bool(var_exigir.get()) if var_exigir is not None else False
+
+        criados = 0
+        ignorados = 0
+        problemas = []
+        total = len(self._dados_excel_outlook)
+        for indice, linha in enumerate(self._dados_excel_outlook, 1):
+            self._status_outlook(f'criando rascunho {indice} de {total}...')
+            self.update_idletasks()
+            para = self._preencher_modelo_outlook(modelo_para, linha).strip()
+            cc = self._preencher_modelo_outlook(modelo_cc, linha).strip()
+            bcc = self._preencher_modelo_outlook(modelo_bcc, linha).strip()
+            assunto = self._preencher_modelo_outlook(modelo_assunto, linha).strip()
+            if not para:
+                ignorados += 1
+                problemas.append(f'Linha {indice}: destinatário Para vazio.')
+                continue
+
+            anexos, ausentes = self._caminhos_anexos_outlook(linha)
+            corpo_html, imagens = self._corpo_html_outlook(linha)
+            imagens_validas = []
+            for caminho_imagem, cid in imagens:
+                if os.path.isfile(caminho_imagem):
+                    imagens_validas.append((caminho_imagem, cid))
+                else:
+                    ausentes.append(caminho_imagem)
+
+            if ausentes and exigir_anexo:
+                ignorados += 1
+                problemas.append(
+                    f'Linha {indice}: anexo não encontrado: ' + ', '.join(os.path.basename(x) or x for x in ausentes[:3])
+                )
+                continue
+
+            mail = None
+            try:
+                mail = self._criar_item_outlook(outlook)
+                mail.To = para
+                mail.CC = cc
+                mail.BCC = bcc
+                mail.Subject = assunto
+                mail.BodyFormat = 2
+                mail.HTMLBody = corpo_html
+                mail.Save()
+
+                for caminho in anexos:
+                    mail.Attachments.Add(caminho)
+                for caminho_imagem, cid in imagens_validas:
+                    anexo = mail.Attachments.Add(caminho_imagem)
+                    anexo.PropertyAccessor.SetProperty(
+                        'http://schemas.microsoft.com/mapi/proptag/0x3712001F',
+                        cid,
+                    )
+                mail.Save()
+                criados += 1
+                if ausentes:
+                    problemas.append(
+                        f'Linha {indice}: rascunho criado, mas arquivo não encontrado: ' + ', '.join(os.path.basename(x) or x for x in ausentes[:3])
+                    )
+            except Exception as erro:
+                ignorados += 1
+                problemas.append(f'Linha {indice}: {erro}')
+                if mail is not None:
+                    try:
+                        mail.Delete()
+                    except Exception:
+                        pass
+
+        self._status_outlook(f'{criados} rascunho(s) criado(s); {ignorados} linha(s) não concluída(s).')
+        resumo = f'Rascunhos criados: {criados}\nLinhas não concluídas: {ignorados}'
+        if problemas:
+            resumo += '\n\nOcorrências:\n' + '\n'.join(problemas[:10])
+            if len(problemas) > 10:
+                resumo += f'\n... e mais {len(problemas) - 10} ocorrência(s).'
+        messagebox.showinfo('Rascunhos do Outlook', resumo)
+'''
+
+    substituicoes = {
+        '__CAMINHO_EXCEL__': r['caminho_excel'],
+        '__SELECIONAR_EXCEL__': r['selecionar_excel'],
+        '__PLANILHA_EXCEL__': r['planilha_excel'],
+        '__COLUNAS_EXCEL__': r['colunas_excel'],
+        '__EMAIL_TO__': r['email_to'],
+        '__EMAIL_CC__': r['email_cc'],
+        '__EMAIL_BCC__': r['email_bcc'],
+        '__ASSUNTO__': r['assunto'],
+        '__PASTA_ANEXOS__': r['pasta_anexos'],
+        '__SELECIONAR_PASTA__': r['selecionar_pasta_anexos'],
+        '__REGRA_ANEXO__': r['regra_anexo'],
+        '__EXIGIR_ANEXO__': r['exigir_anexo'],
+        '__NEGRITO__': r['negrito'],
+        '__ITALICO__': r['italico'],
+        '__SUBLINHADO__': r['sublinhado'],
+        '__COR_TEXTO__': r['cor_texto'],
+        '__TAMANHO_TEXTO__': r['tamanho_texto'],
+        '__APLICAR_TAMANHO__': r['aplicar_tamanho'],
+        '__LINK__': r['link'],
+        '__IMAGEM__': r['imagem'],
+        '__CORPO__': r['corpo'],
+        '__ANEXOS_FIXOS__': r['anexos_fixos'],
+        '__ADICIONAR_ANEXO__': r['adicionar_anexo'],
+        '__REMOVER_ANEXO__': r['remover_anexo'],
+        '__CRIAR_RASCUNHOS__': r['criar_rascunhos'],
+        '__STATUS__': r['status'],
+    }
+    for marcador, nome in substituicoes.items():
+        bloco = bloco.replace(marcador, nome)
+
+    alvo = "\n    def _valor_componente(self, nome):"
+    if alvo not in codigo:
+        return codigo
+    codigo = codigo.replace(alvo, bloco + alvo, 1)
+    return codigo
+
+
+_gerar_codigo_antes_outlook = gerar_codigo
+
+
+def gerar_codigo(projeto: Projeto) -> str:
+    codigo = _gerar_codigo_antes_outlook(projeto)
+    return _adicionar_recursos_outlook_excel(codigo, projeto)
+
+# Recursos dos exemplos 46 e 47 de quebra de arquivos do Excel por coluna.
+def _adicionar_recursos_quebra_excel_46(codigo: str, projeto: Projeto) -> str:
+    r = _mapa_recursos_outlook(projeto)
+    obrigatorios = {
+        "qe46_caminho_excel", "qe46_selecionar_excel", "qe46_aba",
+        "qe46_lista_colunas", "qe46_coluna", "qe46_usar_coluna", "qe46_resumo",
+        "qe46_pasta_saida", "qe46_selecionar_pasta", "qe46_nome_geral",
+        "qe46_nome_individual", "qe46_gerar_abas", "qe46_gerar_arquivos", "qe46_status",
+    }
+    if not obrigatorios.issubset(r):
+        return codigo
+
+    if "import os\n" not in codigo:
+        codigo = codigo.replace("import sqlite3\n", "import sqlite3\nimport os\n", 1)
+
+    bloco = r'''
+        self._configurar_quebra_excel_46()
+
+    def _configurar_quebra_excel_46(self):
+        self._qe46_cabecalhos = []
+        self._qe46_contagens = {}
+
+        getattr(self, '__SELECIONAR_EXCEL__').configure(command=self._qe46_selecionar_excel)
+        getattr(self, '__SELECIONAR_PASTA__').configure(command=self._qe46_selecionar_pasta)
+        getattr(self, '__USAR_COLUNA__').configure(command=self._qe46_usar_coluna)
+        getattr(self, '__GERAR_ABAS__').configure(command=self._qe46_gerar_arquivo_com_abas)
+        getattr(self, '__GERAR_ARQUIVOS__').configure(command=self._qe46_gerar_arquivos_separados)
+
+        combo_aba = getattr(self, '__ABA__')
+        combo_aba.bind('<<ComboboxSelected>>', lambda e: self._qe46_carregar_colunas())
+        combo_coluna = getattr(self, '__COLUNA__')
+        combo_coluna.bind('<<ComboboxSelected>>', lambda e: self._qe46_atualizar_resumo())
+        lista = getattr(self, '__LISTA_COLUNAS__')
+        lista.bind('<Double-Button-1>', lambda e: self._qe46_usar_coluna())
+
+        resumo = getattr(self, '__RESUMO__')
+        resumo.configure(columns=('valor', 'quantidade'), show='headings')
+        resumo.heading('valor', text='Valor encontrado')
+        resumo.heading('quantidade', text='Quantidade de linhas')
+        resumo.column('valor', width=390, anchor='w')
+        resumo.column('quantidade', width=170, anchor='center')
+
+        if not str(self._valor_componente('__NOME_GERAL__')).strip():
+            self._definir_valor_componente('__NOME_GERAL__', 'Quebra_{coluna}.xlsx')
+        if not str(self._valor_componente('__NOME_INDIVIDUAL__')).strip():
+            self._definir_valor_componente('__NOME_INDIVIDUAL__', '{valor}_dados.xlsx')
+        self._qe46_status('selecione um arquivo do Excel.')
+
+    def _qe46_status(self, texto):
+        widget = getattr(self, '__STATUS__', None)
+        if widget is not None:
+            try:
+                widget.configure(text='Status: ' + str(texto))
+            except tk.TclError:
+                pass
+
+    def _qe_excel_texto_valor(self, valor):
+        from datetime import datetime as _dt, date as _date
+        if valor is None:
+            return ''
+        if isinstance(valor, _dt):
+            return valor.strftime('%d-%m-%Y_%H-%M-%S')
+        if isinstance(valor, _date):
+            return valor.strftime('%d-%m-%Y')
+        if isinstance(valor, float) and valor.is_integer():
+            return str(int(valor))
+        return str(valor).strip()
+
+    def _qe_excel_nome_seguro(self, texto, padrao='arquivo'):
+        import re as _re
+        texto = self._qe_excel_texto_valor(texto).strip()
+        texto = _re.sub(r'[<>:"/\\|?*]+', '_', texto)
+        texto = _re.sub(r'\s+', ' ', texto).strip(' .')
+        if not texto:
+            texto = padrao
+        reservados = {'CON', 'PRN', 'AUX', 'NUL'} | {f'COM{i}' for i in range(1, 10)} | {f'LPT{i}' for i in range(1, 10)}
+        if texto.upper() in reservados:
+            texto = '_' + texto
+        return texto[:180]
+
+    def _qe_excel_nome_aba(self, texto, usados):
+        import re as _re
+        nome = self._qe_excel_texto_valor(texto).strip()
+        nome = _re.sub(r'[\\/*?:\[\]]+', '_', nome).strip(" '")
+        if not nome:
+            nome = 'Sem valor'
+        nome = nome[:31]
+        base = nome
+        contador = 2
+        while nome.casefold() in usados:
+            sufixo = f'_{contador}'
+            nome = (base[:31-len(sufixo)] + sufixo)[:31]
+            contador += 1
+        usados.add(nome.casefold())
+        return nome
+
+    def _qe_excel_modelo_nome(self, modelo, valor='', coluna='', arquivo=''):
+        texto = str(modelo or '').strip()
+        if not texto:
+            texto = '{valor}.xlsx'
+        trocas = {
+            '{valor}': self._qe_excel_nome_seguro(valor, 'Sem_valor'),
+            '{coluna}': self._qe_excel_nome_seguro(coluna, 'Coluna'),
+            '{arquivo}': self._qe_excel_nome_seguro(arquivo, 'Arquivo'),
+        }
+        for marcador, conteudo in trocas.items():
+            texto = texto.replace(marcador, conteudo)
+        texto = self._qe_excel_nome_seguro(texto, 'arquivo.xlsx')
+        if not texto.lower().endswith('.xlsx'):
+            texto += '.xlsx'
+        return texto
+
+    def _qe_excel_copiar_linha(self, origem, destino, linha_origem, linha_destino, max_col):
+        from copy import copy
+        for coluna in range(1, max_col + 1):
+            celula_origem = origem.cell(row=linha_origem, column=coluna)
+            celula_destino = destino.cell(row=linha_destino, column=coluna, value=celula_origem.value)
+            if celula_origem.has_style:
+                celula_destino.font = copy(celula_origem.font)
+                celula_destino.fill = copy(celula_origem.fill)
+                celula_destino.border = copy(celula_origem.border)
+                celula_destino.alignment = copy(celula_origem.alignment)
+                celula_destino.protection = copy(celula_origem.protection)
+                celula_destino.number_format = celula_origem.number_format
+            if celula_origem.hyperlink:
+                celula_destino._hyperlink = copy(celula_origem.hyperlink)
+            if celula_origem.comment:
+                celula_destino.comment = copy(celula_origem.comment)
+        altura = origem.row_dimensions[linha_origem].height
+        if altura is not None:
+            destino.row_dimensions[linha_destino].height = altura
+
+    def _qe_excel_copiar_configuracao(self, origem, destino, ultima_linha, max_col):
+        from copy import copy
+        from openpyxl.utils import get_column_letter
+        for coluna in range(1, max_col + 1):
+            letra = get_column_letter(coluna)
+            dimensao = origem.column_dimensions.get(letra)
+            if dimensao is not None and dimensao.width is not None:
+                destino.column_dimensions[letra].width = dimensao.width
+        destino.freeze_panes = origem.freeze_panes
+        destino.sheet_view.showGridLines = origem.sheet_view.showGridLines
+        try:
+            destino.sheet_properties.tabColor = copy(origem.sheet_properties.tabColor)
+        except Exception:
+            pass
+        if ultima_linha >= 1 and max_col >= 1:
+            destino.auto_filter.ref = f'A1:{get_column_letter(max_col)}{ultima_linha}'
+
+    def _qe46_selecionar_excel(self):
+        try:
+            from openpyxl import load_workbook
+        except ImportError:
+            messagebox.showerror('Excel', 'Para usar este projeto, instale a biblioteca openpyxl com:\n\npip install openpyxl')
+            return
+        caminho = filedialog.askopenfilename(
+            parent=self,
+            title='Selecionar arquivo do Excel',
+            filetypes=[('Planilhas do Excel', '*.xlsx *.xlsm'), ('Arquivo .xlsx', '*.xlsx'), ('Todos os arquivos', '*.*')],
+        )
+        if not caminho:
+            return
+        self._definir_valor_componente('__CAMINHO_EXCEL__', caminho)
+        try:
+            wb = load_workbook(caminho, read_only=True, data_only=False)
+            abas = list(wb.sheetnames)
+            wb.close()
+        except Exception as erro:
+            messagebox.showerror('Excel', f'Não foi possível abrir o arquivo.\n\n{erro}')
+            return
+        combo = getattr(self, '__ABA__')
+        combo.configure(values=abas)
+        if abas:
+            self._definir_valor_componente('__ABA__', abas[0])
+            self._qe46_carregar_colunas()
+        pasta_padrao = os.path.join(os.path.dirname(caminho), 'Arquivos_Quebrados')
+        if not str(self._valor_componente('__PASTA_SAIDA__')).strip():
+            self._definir_valor_componente('__PASTA_SAIDA__', pasta_padrao)
+        self._qe46_status(f'{len(abas)} aba(s) encontrada(s).')
+
+    def _qe46_carregar_colunas(self):
+        try:
+            from openpyxl import load_workbook
+        except ImportError:
+            return
+        caminho = str(self._valor_componente('__CAMINHO_EXCEL__')).strip()
+        aba = str(self._valor_componente('__ABA__')).strip()
+        if not caminho or not aba:
+            return
+        try:
+            wb = load_workbook(caminho, read_only=True, data_only=False)
+            ws = wb[aba]
+            primeira = next(ws.iter_rows(min_row=1, max_row=1, values_only=True), ())
+            cabecalhos = []
+            usados = {}
+            for indice, valor in enumerate(primeira, 1):
+                nome = str(valor).strip() if valor not in (None, '') else f'Coluna_{indice}'
+                qtd = usados.get(nome.casefold(), 0) + 1
+                usados[nome.casefold()] = qtd
+                if qtd > 1:
+                    nome = f'{nome}_{qtd}'
+                cabecalhos.append(nome)
+            wb.close()
+        except Exception as erro:
+            messagebox.showerror('Excel', f'Não foi possível ler os cabeçalhos.\n\n{erro}')
+            return
+        self._qe46_cabecalhos = cabecalhos
+        lista = getattr(self, '__LISTA_COLUNAS__')
+        lista.delete(0, tk.END)
+        for nome in cabecalhos:
+            lista.insert(tk.END, nome)
+        combo = getattr(self, '__COLUNA__')
+        combo.configure(values=cabecalhos)
+        if cabecalhos:
+            self._definir_valor_componente('__COLUNA__', cabecalhos[0])
+            self._qe46_atualizar_resumo()
+        self._qe46_status(f'{len(cabecalhos)} coluna(s) encontrada(s) na aba {aba}.')
+
+    def _qe46_usar_coluna(self):
+        lista = getattr(self, '__LISTA_COLUNAS__')
+        selecao = lista.curselection()
+        if not selecao:
+            messagebox.showinfo('Coluna', 'Selecione uma coluna na lista.')
+            return
+        coluna = str(lista.get(selecao[0]))
+        self._definir_valor_componente('__COLUNA__', coluna)
+        self._qe46_atualizar_resumo()
+
+    def _qe46_coluna_indice(self, cabecalhos, selecionada):
+        alvo = str(selecionada).strip().casefold()
+        for indice, nome in enumerate(cabecalhos, 1):
+            if str(nome).strip().casefold() == alvo:
+                return indice
+        return None
+
+    def _qe46_atualizar_resumo(self):
+        try:
+            from openpyxl import load_workbook
+        except ImportError:
+            return
+        caminho = str(self._valor_componente('__CAMINHO_EXCEL__')).strip()
+        aba = str(self._valor_componente('__ABA__')).strip()
+        coluna = str(self._valor_componente('__COLUNA__')).strip()
+        if not caminho or not aba or not coluna:
+            return
+        try:
+            wb = load_workbook(caminho, read_only=True, data_only=True)
+            ws = wb[aba]
+            cabecalhos = list(self._qe46_cabecalhos)
+            indice = self._qe46_coluna_indice(cabecalhos, coluna)
+            if indice is None:
+                wb.close()
+                return
+            contagens = {}
+            for linha in ws.iter_rows(min_row=2, values_only=True):
+                valor = linha[indice - 1] if indice - 1 < len(linha) else None
+                texto = self._qe_excel_texto_valor(valor)
+                if not texto:
+                    continue
+                contagens[texto] = contagens.get(texto, 0) + 1
+            wb.close()
+        except Exception as erro:
+            messagebox.showerror('Excel', f'Não foi possível analisar a coluna.\n\n{erro}')
+            return
+        self._qe46_contagens = contagens
+        tree = getattr(self, '__RESUMO__')
+        for item in tree.get_children():
+            tree.delete(item)
+        for valor in sorted(contagens, key=lambda x: x.casefold()):
+            tree.insert('', tk.END, values=(valor, contagens[valor]))
+        self._qe46_status(f'{len(contagens)} valor(es) diferente(s) encontrado(s); {sum(contagens.values())} linha(s) serão consideradas.')
+
+    def _qe46_selecionar_pasta(self):
+        pasta = filedialog.askdirectory(parent=self, title='Selecionar pasta de saída')
+        if pasta:
+            self._definir_valor_componente('__PASTA_SAIDA__', pasta)
+
+    def _qe46_obter_dados_quebra(self, data_only=False):
+        from openpyxl import load_workbook
+        caminho = str(self._valor_componente('__CAMINHO_EXCEL__')).strip()
+        aba = str(self._valor_componente('__ABA__')).strip()
+        coluna = str(self._valor_componente('__COLUNA__')).strip()
+        if not caminho or not os.path.isfile(caminho):
+            raise ValueError('Selecione um arquivo do Excel válido.')
+        if not aba:
+            raise ValueError('Escolha a aba de origem.')
+        if not coluna:
+            raise ValueError('Escolha a coluna usada para fazer a quebra.')
+        wb = load_workbook(caminho, data_only=data_only)
+        if aba not in wb.sheetnames:
+            wb.close()
+            raise ValueError('A aba escolhida não existe mais no arquivo.')
+        ws = wb[aba]
+        cabecalhos_reais = []
+        usados = {}
+        for indice in range(1, ws.max_column + 1):
+            valor = ws.cell(row=1, column=indice).value
+            nome = str(valor).strip() if valor not in (None, '') else f'Coluna_{indice}'
+            qtd = usados.get(nome.casefold(), 0) + 1
+            usados[nome.casefold()] = qtd
+            if qtd > 1:
+                nome = f'{nome}_{qtd}'
+            cabecalhos_reais.append(nome)
+        indice_coluna = self._qe46_coluna_indice(cabecalhos_reais, coluna)
+        if indice_coluna is None:
+            wb.close()
+            raise ValueError(f'A coluna {coluna} não foi encontrada na aba {aba}.')
+        grupos = {}
+        for numero_linha in range(2, ws.max_row + 1):
+            valor = ws.cell(row=numero_linha, column=indice_coluna).value
+            texto = self._qe_excel_texto_valor(valor)
+            if not texto:
+                continue
+            grupos.setdefault(texto, []).append(numero_linha)
+        if not grupos:
+            wb.close()
+            raise ValueError('Nenhum valor preenchido foi encontrado na coluna escolhida.')
+        return wb, ws, coluna, grupos
+
+    def _qe46_gerar_arquivo_com_abas(self):
+        try:
+            from openpyxl import Workbook
+            wb_origem, ws_origem, coluna, grupos = self._qe46_obter_dados_quebra(data_only=False)
+        except ImportError:
+            messagebox.showerror('Excel', 'Instale a biblioteca openpyxl com:\n\npip install openpyxl')
+            return
+        except Exception as erro:
+            messagebox.showwarning('Quebra do Excel', str(erro))
+            return
+        pasta = str(self._valor_componente('__PASTA_SAIDA__')).strip()
+        if not pasta:
+            wb_origem.close()
+            messagebox.showwarning('Pasta de saída', 'Escolha a pasta onde o arquivo será criado.')
+            return
+        os.makedirs(pasta, exist_ok=True)
+        arquivo_base = os.path.splitext(os.path.basename(str(self._valor_componente('__CAMINHO_EXCEL__'))))[0]
+        nome_modelo = str(self._valor_componente('__NOME_GERAL__')).strip()
+        nome_saida = self._qe_excel_modelo_nome(nome_modelo, valor='Todos', coluna=coluna, arquivo=arquivo_base)
+        caminho_saida = os.path.join(pasta, nome_saida)
+        if os.path.exists(caminho_saida) and not messagebox.askyesno('Sobrescrever arquivo', f'O arquivo já existe:\n\n{caminho_saida}\n\nDeseja substituí-lo?'):
+            wb_origem.close()
+            return
+        try:
+            wb_saida = Workbook()
+            wb_saida.remove(wb_saida.active)
+            usados = set()
+            total = len(grupos)
+            for posicao, (valor, linhas) in enumerate(grupos.items(), 1):
+                self._qe46_status(f'criando aba {posicao} de {total}: {valor}')
+                self.update_idletasks()
+                titulo = self._qe_excel_nome_aba(valor, usados)
+                ws_saida = wb_saida.create_sheet(titulo)
+                self._qe_excel_copiar_linha(ws_origem, ws_saida, 1, 1, ws_origem.max_column)
+                destino = 2
+                for linha in linhas:
+                    self._qe_excel_copiar_linha(ws_origem, ws_saida, linha, destino, ws_origem.max_column)
+                    destino += 1
+                self._qe_excel_copiar_configuracao(ws_origem, ws_saida, destino - 1, ws_origem.max_column)
+            wb_saida.save(caminho_saida)
+            wb_saida.close()
+            wb_origem.close()
+        except Exception as erro:
+            try:
+                wb_origem.close()
+            except Exception:
+                pass
+            messagebox.showerror('Quebra do Excel', f'Não foi possível gerar o arquivo.\n\n{erro}')
+            return
+        self._qe46_status(f'arquivo criado com {len(grupos)} aba(s).')
+        messagebox.showinfo('Quebra concluída', f'Arquivo criado com sucesso:\n\n{caminho_saida}\n\nAbas criadas: {len(grupos)}')
+
+    def _qe46_gerar_arquivos_separados(self):
+        try:
+            from openpyxl import Workbook
+            wb_origem, ws_origem, coluna, grupos = self._qe46_obter_dados_quebra(data_only=False)
+        except ImportError:
+            messagebox.showerror('Excel', 'Instale a biblioteca openpyxl com:\n\npip install openpyxl')
+            return
+        except Exception as erro:
+            messagebox.showwarning('Quebra do Excel', str(erro))
+            return
+        pasta = str(self._valor_componente('__PASTA_SAIDA__')).strip()
+        if not pasta:
+            wb_origem.close()
+            messagebox.showwarning('Pasta de saída', 'Escolha a pasta onde os arquivos serão criados.')
+            return
+        os.makedirs(pasta, exist_ok=True)
+        arquivo_base = os.path.splitext(os.path.basename(str(self._valor_componente('__CAMINHO_EXCEL__'))))[0]
+        modelo = str(self._valor_componente('__NOME_INDIVIDUAL__')).strip()
+        caminhos = []
+        nomes_usados = set()
+        for valor in grupos:
+            nome = self._qe_excel_modelo_nome(modelo, valor=valor, coluna=coluna, arquivo=arquivo_base)
+            base, ext = os.path.splitext(nome)
+            candidato = nome
+            numero = 2
+            while candidato.casefold() in nomes_usados:
+                candidato = f'{base}_{numero}{ext}'
+                numero += 1
+            nomes_usados.add(candidato.casefold())
+            caminhos.append((valor, candidato, os.path.join(pasta, candidato)))
+        existentes = [caminho for _valor, _nome, caminho in caminhos if os.path.exists(caminho)]
+        if existentes and not messagebox.askyesno('Sobrescrever arquivos', f'{len(existentes)} arquivo(s) já existem na pasta de saída.\n\nDeseja substituí-los?'):
+            wb_origem.close()
+            return
+        try:
+            total = len(caminhos)
+            nome_aba = self._qe_excel_nome_aba(ws_origem.title, set())
+            for posicao, (valor, _nome, caminho_saida) in enumerate(caminhos, 1):
+                self._qe46_status(f'criando arquivo {posicao} de {total}: {valor}')
+                self.update_idletasks()
+                wb_saida = Workbook()
+                ws_saida = wb_saida.active
+                ws_saida.title = nome_aba
+                self._qe_excel_copiar_linha(ws_origem, ws_saida, 1, 1, ws_origem.max_column)
+                destino = 2
+                for linha in grupos[valor]:
+                    self._qe_excel_copiar_linha(ws_origem, ws_saida, linha, destino, ws_origem.max_column)
+                    destino += 1
+                self._qe_excel_copiar_configuracao(ws_origem, ws_saida, destino - 1, ws_origem.max_column)
+                wb_saida.save(caminho_saida)
+                wb_saida.close()
+            wb_origem.close()
+        except Exception as erro:
+            try:
+                wb_origem.close()
+            except Exception:
+                pass
+            messagebox.showerror('Quebra do Excel', f'Não foi possível gerar os arquivos.\n\n{erro}')
+            return
+        self._qe46_status(f'{len(caminhos)} arquivo(s) separado(s) criado(s).')
+        messagebox.showinfo('Quebra concluída', f'Foram criados {len(caminhos)} arquivo(s) em:\n\n{pasta}')
+'''
+
+    substituicoes = {
+        '__CAMINHO_EXCEL__': r['qe46_caminho_excel'],
+        '__SELECIONAR_EXCEL__': r['qe46_selecionar_excel'],
+        '__ABA__': r['qe46_aba'],
+        '__LISTA_COLUNAS__': r['qe46_lista_colunas'],
+        '__COLUNA__': r['qe46_coluna'],
+        '__USAR_COLUNA__': r['qe46_usar_coluna'],
+        '__RESUMO__': r['qe46_resumo'],
+        '__PASTA_SAIDA__': r['qe46_pasta_saida'],
+        '__SELECIONAR_PASTA__': r['qe46_selecionar_pasta'],
+        '__NOME_GERAL__': r['qe46_nome_geral'],
+        '__NOME_INDIVIDUAL__': r['qe46_nome_individual'],
+        '__GERAR_ABAS__': r['qe46_gerar_abas'],
+        '__GERAR_ARQUIVOS__': r['qe46_gerar_arquivos'],
+        '__STATUS__': r['qe46_status'],
+    }
+    for marcador, nome in substituicoes.items():
+        bloco = bloco.replace(marcador, nome)
+
+    alvo = "\n    def _valor_componente(self, nome):"
+    if alvo not in codigo:
+        return codigo
+    return codigo.replace(alvo, bloco + alvo, 1)
+
+
+def _adicionar_recursos_quebra_excel_47(codigo: str, projeto: Projeto) -> str:
+    r = _mapa_recursos_outlook(projeto)
+    obrigatorios = {
+        "qe47_caminho_excel", "qe47_selecionar_excel", "qe47_lista_abas",
+        "qe47_lista_colunas", "qe47_coluna", "qe47_usar_coluna", "qe47_resumo",
+        "qe47_pasta_saida", "qe47_selecionar_pasta", "qe47_nome_arquivo",
+        "qe47_gerar", "qe47_status",
+    }
+    if not obrigatorios.issubset(r):
+        return codigo
+
+    if "import os\n" not in codigo:
+        codigo = codigo.replace("import sqlite3\n", "import sqlite3\nimport os\n", 1)
+
+    bloco = r'''
+        self._configurar_quebra_excel_47()
+
+    def _configurar_quebra_excel_47(self):
+        self._qe47_abas = []
+        self._qe47_colunas_comuns = []
+        self._qe47_resumo_dados = {}
+
+        getattr(self, '__SELECIONAR_EXCEL__').configure(command=self._qe47_selecionar_excel)
+        getattr(self, '__SELECIONAR_PASTA__').configure(command=self._qe47_selecionar_pasta)
+        getattr(self, '__USAR_COLUNA__').configure(command=self._qe47_usar_coluna)
+        getattr(self, '__GERAR__').configure(command=self._qe47_gerar_arquivos)
+
+        lista_colunas = getattr(self, '__LISTA_COLUNAS__')
+        lista_colunas.bind('<Double-Button-1>', lambda e: self._qe47_usar_coluna())
+        combo = getattr(self, '__COLUNA__')
+        combo.bind('<<ComboboxSelected>>', lambda e: self._qe47_atualizar_resumo())
+
+        resumo = getattr(self, '__RESUMO__')
+        resumo.configure(columns=('valor', 'linhas', 'abas'), show='headings')
+        resumo.heading('valor', text='Valor')
+        resumo.heading('linhas', text='Linhas')
+        resumo.heading('abas', text='Abas')
+        resumo.column('valor', width=130, anchor='w')
+        resumo.column('linhas', width=65, anchor='center')
+        resumo.column('abas', width=60, anchor='center')
+
+        if not str(self._valor_componente('__NOME_ARQUIVO__')).strip():
+            self._definir_valor_componente('__NOME_ARQUIVO__', '{valor}_relatorio.xlsx')
+        self._qe47_status('selecione um arquivo com várias abas.')
+
+    def _qe47_status(self, texto):
+        widget = getattr(self, '__STATUS__', None)
+        if widget is not None:
+            try:
+                widget.configure(text='Status: ' + str(texto))
+            except tk.TclError:
+                pass
+
+    def _qe47_texto_valor(self, valor):
+        from datetime import datetime as _dt, date as _date
+        if valor is None:
+            return ''
+        if isinstance(valor, _dt):
+            return valor.strftime('%d-%m-%Y_%H-%M-%S')
+        if isinstance(valor, _date):
+            return valor.strftime('%d-%m-%Y')
+        if isinstance(valor, float) and valor.is_integer():
+            return str(int(valor))
+        return str(valor).strip()
+
+    def _qe47_nome_seguro(self, texto, padrao='arquivo'):
+        import re as _re
+        texto = self._qe47_texto_valor(texto).strip()
+        texto = _re.sub(r'[<>:"/\\|?*]+', '_', texto)
+        texto = _re.sub(r'\s+', ' ', texto).strip(' .')
+        if not texto:
+            texto = padrao
+        reservados = {'CON', 'PRN', 'AUX', 'NUL'} | {f'COM{i}' for i in range(1, 10)} | {f'LPT{i}' for i in range(1, 10)}
+        if texto.upper() in reservados:
+            texto = '_' + texto
+        return texto[:180]
+
+    def _qe47_modelo_nome(self, modelo, valor='', coluna='', arquivo=''):
+        texto = str(modelo or '').strip() or '{valor}.xlsx'
+        trocas = {
+            '{valor}': self._qe47_nome_seguro(valor, 'Sem_valor'),
+            '{coluna}': self._qe47_nome_seguro(coluna, 'Coluna'),
+            '{arquivo}': self._qe47_nome_seguro(arquivo, 'Arquivo'),
+        }
+        for marcador, conteudo in trocas.items():
+            texto = texto.replace(marcador, conteudo)
+        texto = self._qe47_nome_seguro(texto, 'arquivo.xlsx')
+        if not texto.lower().endswith('.xlsx'):
+            texto += '.xlsx'
+        return texto
+
+    def _qe47_copiar_linha(self, origem, destino, linha_origem, linha_destino, max_col):
+        from copy import copy
+        for coluna in range(1, max_col + 1):
+            celula_origem = origem.cell(row=linha_origem, column=coluna)
+            celula_destino = destino.cell(row=linha_destino, column=coluna, value=celula_origem.value)
+            if celula_origem.has_style:
+                celula_destino.font = copy(celula_origem.font)
+                celula_destino.fill = copy(celula_origem.fill)
+                celula_destino.border = copy(celula_origem.border)
+                celula_destino.alignment = copy(celula_origem.alignment)
+                celula_destino.protection = copy(celula_origem.protection)
+                celula_destino.number_format = celula_origem.number_format
+            if celula_origem.hyperlink:
+                celula_destino._hyperlink = copy(celula_origem.hyperlink)
+            if celula_origem.comment:
+                celula_destino.comment = copy(celula_origem.comment)
+        altura = origem.row_dimensions[linha_origem].height
+        if altura is not None:
+            destino.row_dimensions[linha_destino].height = altura
+
+    def _qe47_copiar_configuracao(self, origem, destino, ultima_linha, max_col):
+        from copy import copy
+        from openpyxl.utils import get_column_letter
+        for coluna in range(1, max_col + 1):
+            letra = get_column_letter(coluna)
+            dimensao = origem.column_dimensions.get(letra)
+            if dimensao is not None and dimensao.width is not None:
+                destino.column_dimensions[letra].width = dimensao.width
+        destino.freeze_panes = origem.freeze_panes
+        destino.sheet_view.showGridLines = origem.sheet_view.showGridLines
+        try:
+            destino.sheet_properties.tabColor = copy(origem.sheet_properties.tabColor)
+        except Exception:
+            pass
+        if ultima_linha >= 1 and max_col >= 1:
+            destino.auto_filter.ref = f'A1:{get_column_letter(max_col)}{ultima_linha}'
+
+    def _qe47_cabecalhos_planilha(self, ws):
+        cabecalhos = []
+        usados = {}
+        for indice in range(1, ws.max_column + 1):
+            valor = ws.cell(row=1, column=indice).value
+            nome = str(valor).strip() if valor not in (None, '') else f'Coluna_{indice}'
+            qtd = usados.get(nome.casefold(), 0) + 1
+            usados[nome.casefold()] = qtd
+            if qtd > 1:
+                nome = f'{nome}_{qtd}'
+            cabecalhos.append(nome)
+        return cabecalhos
+
+    def _qe47_indice_coluna(self, cabecalhos, selecionada):
+        alvo = str(selecionada).strip().casefold()
+        for indice, nome in enumerate(cabecalhos, 1):
+            if str(nome).strip().casefold() == alvo:
+                return indice
+        return None
+
+    def _qe47_selecionar_excel(self):
+        try:
+            from openpyxl import load_workbook
+        except ImportError:
+            messagebox.showerror('Excel', 'Para usar este projeto, instale a biblioteca openpyxl com:\n\npip install openpyxl')
+            return
+        caminho = filedialog.askopenfilename(
+            parent=self,
+            title='Selecionar arquivo do Excel com várias abas',
+            filetypes=[('Planilhas do Excel', '*.xlsx *.xlsm'), ('Arquivo .xlsx', '*.xlsx'), ('Todos os arquivos', '*.*')],
+        )
+        if not caminho:
+            return
+        self._definir_valor_componente('__CAMINHO_EXCEL__', caminho)
+        try:
+            wb = load_workbook(caminho, read_only=False, data_only=False)
+            abas = []
+            cabecalhos_por_aba = {}
+            for ws in wb.worksheets:
+                if ws.max_row < 1 or ws.max_column < 1:
+                    continue
+                cabecalhos = self._qe47_cabecalhos_planilha(ws)
+                if not cabecalhos:
+                    continue
+                abas.append(ws.title)
+                cabecalhos_por_aba[ws.title] = cabecalhos
+            wb.close()
+        except Exception as erro:
+            messagebox.showerror('Excel', f'Não foi possível abrir o arquivo.\n\n{erro}')
+            return
+        if not abas:
+            messagebox.showwarning('Excel', 'Nenhuma aba com cabeçalhos foi encontrada.')
+            return
+        primeira = cabecalhos_por_aba[abas[0]]
+        comuns_cf = {c.casefold() for c in primeira}
+        for aba in abas[1:]:
+            comuns_cf &= {c.casefold() for c in cabecalhos_por_aba[aba]}
+        comuns = [c for c in primeira if c.casefold() in comuns_cf]
+        self._qe47_abas = abas
+        self._qe47_colunas_comuns = comuns
+
+        lista_abas = getattr(self, '__LISTA_ABAS__')
+        lista_abas.delete(0, tk.END)
+        for aba in abas:
+            lista_abas.insert(tk.END, aba)
+        lista_colunas = getattr(self, '__LISTA_COLUNAS__')
+        lista_colunas.delete(0, tk.END)
+        for coluna in comuns:
+            lista_colunas.insert(tk.END, coluna)
+        combo = getattr(self, '__COLUNA__')
+        combo.configure(values=comuns)
+        if comuns:
+            self._definir_valor_componente('__COLUNA__', comuns[0])
+            self._qe47_atualizar_resumo()
+        pasta_padrao = os.path.join(os.path.dirname(caminho), 'Arquivos_Quebrados_Multiplas_Abas')
+        if not str(self._valor_componente('__PASTA_SAIDA__')).strip():
+            self._definir_valor_componente('__PASTA_SAIDA__', pasta_padrao)
+        if comuns:
+            self._qe47_status(f'{len(abas)} aba(s) e {len(comuns)} coluna(s) comum(ns) encontradas.')
+        else:
+            self._qe47_status('as abas não possuem uma coluna em comum para fazer a quebra.')
+            messagebox.showwarning('Colunas', 'Não existe uma coluna com o mesmo nome em todas as abas do arquivo.')
+
+    def _qe47_usar_coluna(self):
+        lista = getattr(self, '__LISTA_COLUNAS__')
+        selecao = lista.curselection()
+        if not selecao:
+            messagebox.showinfo('Coluna', 'Selecione uma coluna na lista.')
+            return
+        coluna = str(lista.get(selecao[0]))
+        self._definir_valor_componente('__COLUNA__', coluna)
+        self._qe47_atualizar_resumo()
+
+    def _qe47_atualizar_resumo(self):
+        try:
+            from openpyxl import load_workbook
+        except ImportError:
+            return
+        caminho = str(self._valor_componente('__CAMINHO_EXCEL__')).strip()
+        coluna = str(self._valor_componente('__COLUNA__')).strip()
+        if not caminho or not coluna:
+            return
+        try:
+            wb = load_workbook(caminho, read_only=False, data_only=True)
+            resumo = {}
+            for aba in self._qe47_abas:
+                if aba not in wb.sheetnames:
+                    continue
+                ws = wb[aba]
+                cabecalhos = self._qe47_cabecalhos_planilha(ws)
+                indice = self._qe47_indice_coluna(cabecalhos, coluna)
+                if indice is None:
+                    continue
+                vistos_aba = set()
+                for numero_linha in range(2, ws.max_row + 1):
+                    texto = self._qe47_texto_valor(ws.cell(row=numero_linha, column=indice).value)
+                    if not texto:
+                        continue
+                    item = resumo.setdefault(texto, {'linhas': 0, 'abas': 0})
+                    item['linhas'] += 1
+                    vistos_aba.add(texto)
+                for texto in vistos_aba:
+                    resumo[texto]['abas'] += 1
+            wb.close()
+        except Exception as erro:
+            messagebox.showerror('Excel', f'Não foi possível analisar as abas.\n\n{erro}')
+            return
+        self._qe47_resumo_dados = resumo
+        tree = getattr(self, '__RESUMO__')
+        for item in tree.get_children():
+            tree.delete(item)
+        for valor in sorted(resumo, key=lambda x: x.casefold()):
+            tree.insert('', tk.END, values=(valor, resumo[valor]['linhas'], resumo[valor]['abas']))
+        self._qe47_status(f'{len(resumo)} valor(es) diferente(s) encontrado(s) em {len(self._qe47_abas)} aba(s).')
+
+    def _qe47_selecionar_pasta(self):
+        pasta = filedialog.askdirectory(parent=self, title='Selecionar pasta de saída')
+        if pasta:
+            self._definir_valor_componente('__PASTA_SAIDA__', pasta)
+
+    def _qe47_gerar_arquivos(self):
+        try:
+            from openpyxl import load_workbook, Workbook
+        except ImportError:
+            messagebox.showerror('Excel', 'Instale a biblioteca openpyxl com:\n\npip install openpyxl')
+            return
+        caminho = str(self._valor_componente('__CAMINHO_EXCEL__')).strip()
+        coluna = str(self._valor_componente('__COLUNA__')).strip()
+        pasta = str(self._valor_componente('__PASTA_SAIDA__')).strip()
+        modelo = str(self._valor_componente('__NOME_ARQUIVO__')).strip()
+        if not caminho or not os.path.isfile(caminho):
+            messagebox.showwarning('Excel', 'Selecione um arquivo do Excel válido.')
+            return
+        if not coluna:
+            messagebox.showwarning('Coluna', 'Escolha a coluna usada para fazer a quebra.')
+            return
+        if not pasta:
+            messagebox.showwarning('Pasta de saída', 'Escolha a pasta onde os arquivos serão criados.')
+            return
+        os.makedirs(pasta, exist_ok=True)
+        wb_origem = None
+        try:
+            wb_origem = load_workbook(caminho, data_only=False)
+            abas = [aba for aba in self._qe47_abas if aba in wb_origem.sheetnames]
+            if not abas:
+                wb_origem.close()
+                messagebox.showwarning('Excel', 'Nenhuma das abas analisadas foi encontrada no arquivo.')
+                return
+            indices = {}
+            valores = []
+            valores_vistos = set()
+            for aba in abas:
+                ws = wb_origem[aba]
+                cabecalhos = self._qe47_cabecalhos_planilha(ws)
+                indice = self._qe47_indice_coluna(cabecalhos, coluna)
+                if indice is None:
+                    wb_origem.close()
+                    messagebox.showwarning('Coluna', f'A coluna {coluna} não existe na aba {aba}.')
+                    return
+                indices[aba] = indice
+                for numero_linha in range(2, ws.max_row + 1):
+                    texto = self._qe47_texto_valor(ws.cell(row=numero_linha, column=indice).value)
+                    if texto and texto not in valores_vistos:
+                        valores_vistos.add(texto)
+                        valores.append(texto)
+            if not valores:
+                wb_origem.close()
+                messagebox.showwarning('Quebra do Excel', 'Nenhum valor preenchido foi encontrado na coluna escolhida.')
+                return
+
+            arquivo_base = os.path.splitext(os.path.basename(caminho))[0]
+            nomes_usados = set()
+            saidas = []
+            for valor in valores:
+                nome = self._qe47_modelo_nome(modelo, valor=valor, coluna=coluna, arquivo=arquivo_base)
+                base, ext = os.path.splitext(nome)
+                candidato = nome
+                numero = 2
+                while candidato.casefold() in nomes_usados:
+                    candidato = f'{base}_{numero}{ext}'
+                    numero += 1
+                nomes_usados.add(candidato.casefold())
+                saidas.append((valor, os.path.join(pasta, candidato)))
+
+            existentes = [destino for _valor, destino in saidas if os.path.exists(destino)]
+            if existentes and not messagebox.askyesno('Sobrescrever arquivos', f'{len(existentes)} arquivo(s) já existem na pasta de saída.\n\nDeseja substituí-los?'):
+                wb_origem.close()
+                return
+
+            total = len(saidas)
+            for posicao, (valor, destino_arquivo) in enumerate(saidas, 1):
+                self._qe47_status(f'criando arquivo {posicao} de {total}: {valor}')
+                self.update_idletasks()
+                wb_saida = Workbook()
+                wb_saida.remove(wb_saida.active)
+                for aba in abas:
+                    ws_origem = wb_origem[aba]
+                    ws_saida = wb_saida.create_sheet(aba[:31])
+                    self._qe47_copiar_linha(ws_origem, ws_saida, 1, 1, ws_origem.max_column)
+                    destino_linha = 2
+                    indice = indices[aba]
+                    for numero_linha in range(2, ws_origem.max_row + 1):
+                        texto = self._qe47_texto_valor(ws_origem.cell(row=numero_linha, column=indice).value)
+                        if texto != valor:
+                            continue
+                        self._qe47_copiar_linha(ws_origem, ws_saida, numero_linha, destino_linha, ws_origem.max_column)
+                        destino_linha += 1
+                    self._qe47_copiar_configuracao(ws_origem, ws_saida, destino_linha - 1, ws_origem.max_column)
+                wb_saida.save(destino_arquivo)
+                wb_saida.close()
+            wb_origem.close()
+        except Exception as erro:
+            try:
+                if wb_origem is not None:
+                    wb_origem.close()
+            except Exception:
+                pass
+            messagebox.showerror('Quebra do Excel', f'Não foi possível gerar os arquivos.\n\n{erro}')
+            return
+        self._qe47_status(f'{len(saidas)} arquivo(s) criado(s), cada um mantendo {len(abas)} aba(s).')
+        messagebox.showinfo(
+            'Quebra concluída',
+            f'Foram criados {len(saidas)} arquivo(s) em:\n\n{pasta}\n\nCada arquivo contém {len(abas)} aba(s) filtradas pelo valor da coluna {coluna}.',
+        )
+'''
+
+    substituicoes = {
+        '__CAMINHO_EXCEL__': r['qe47_caminho_excel'],
+        '__SELECIONAR_EXCEL__': r['qe47_selecionar_excel'],
+        '__LISTA_ABAS__': r['qe47_lista_abas'],
+        '__LISTA_COLUNAS__': r['qe47_lista_colunas'],
+        '__COLUNA__': r['qe47_coluna'],
+        '__USAR_COLUNA__': r['qe47_usar_coluna'],
+        '__RESUMO__': r['qe47_resumo'],
+        '__PASTA_SAIDA__': r['qe47_pasta_saida'],
+        '__SELECIONAR_PASTA__': r['qe47_selecionar_pasta'],
+        '__NOME_ARQUIVO__': r['qe47_nome_arquivo'],
+        '__GERAR__': r['qe47_gerar'],
+        '__STATUS__': r['qe47_status'],
+    }
+    for marcador, nome in substituicoes.items():
+        bloco = bloco.replace(marcador, nome)
+
+    alvo = "\n    def _valor_componente(self, nome):"
+    if alvo not in codigo:
+        return codigo
+    return codigo.replace(alvo, bloco + alvo, 1)
+
+
+_gerar_codigo_antes_quebra_excel = gerar_codigo
+
+
+def gerar_codigo(projeto: Projeto) -> str:
+    codigo = _gerar_codigo_antes_quebra_excel(projeto)
+    codigo = _adicionar_recursos_quebra_excel_46(codigo, projeto)
+    codigo = _adicionar_recursos_quebra_excel_47(codigo, projeto)
+    return codigo

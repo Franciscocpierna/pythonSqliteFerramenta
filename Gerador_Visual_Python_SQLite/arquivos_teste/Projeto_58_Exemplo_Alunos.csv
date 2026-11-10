@@ -1,0 +1,16 @@
+ID;Nome;Curso;Nota;Cidade;Status
+1;Ana Souza;Python;9.5;São Paulo;Aprovado
+2;Bruno Lima;Excel;8.0;Osasco;Aprovado
+3;Carla Mendes;Power BI;9.0;Barueri;Aprovado
+4;Diego Alves;Python;7.5;Campinas;Aprovado
+5;Elaine Santos;SQL;8.5;Santos;Aprovado
+6;Felipe Rocha;Tkinter;6.0;Guarulhos;Recuperação
+7;Gabriela Costa;Python;10.0;Sorocaba;Aprovado
+8;Henrique Martins;Excel;7.0;Jundiaí;Aprovado
+9;Isabela Ribeiro;Power BI;5.5;São Bernardo do Campo;Recuperação
+10;João Oliveira;SQL;8.8;Santo André;Aprovado
+11;Karen Silva;Tkinter;9.2;Osasco;Aprovado
+12;Lucas Ferreira;Python;6.8;São Paulo;Aprovado
+13;Mariana Gomes;Excel;9.7;Barueri;Aprovado
+14;Nicolas Pereira;Power BI;7.9;Campinas;Aprovado
+15;Olívia Almeida;SQL;8.3;Santos;Aprovado

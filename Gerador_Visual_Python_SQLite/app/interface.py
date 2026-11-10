@@ -20,6 +20,10 @@ import os
 # `subprocess` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a subprocess.
 import subprocess
 
+# Importa o módulo utilizado para copiar arquivos e remover pastas temporárias.
+# `shutil` = módulo da biblioteca padrão do Python para operações de alto nível com arquivos e diretórios.
+import shutil
+
 # Importa um ou mais módulos para disponibilizar seus recursos neste arquivo.
 # `import` = importa um módulo ou recurso para que possa ser utilizado neste arquivo.
 # `sys` = módulo utilizado para acessar recursos e informações do interpretador Python.
@@ -75,7 +79,7 @@ from .biblioteca import (
     # `COMPARADORES` = constante utilizada para armazenar o valor relacionado a comparadores.
     # `ITENS_BIBLIOTECA` = constante utilizada para armazenar o valor relacionado a itens biblioteca.
     # `MASCARAS` = constante utilizada para armazenar o valor relacionado a mascaras.
-    ACOES_BOTOES, COMPARADORES, ITENS_BIBLIOTECA, MASCARAS,
+    ACOES_BOTOES, ACOES_RECURSOS_ESPECIAIS, COMPARADORES, ITENS_BIBLIOTECA, MASCARAS,
 
     # Adiciona ou configura este valor na estrutura ou chamada iniciada nas linhas anteriores.
     # `MODOS_INSERCAO` = constante utilizada para armazenar o valor relacionado a modos insercao.
@@ -83,7 +87,7 @@ from .biblioteca import (
     # `OPERACOES_MATEMATICAS` = constante utilizada para armazenar o valor relacionado a operacoes matematicas.
     # `TEMAS` = constante utilizada para armazenar o valor relacionado a temas.
     # `VALIDACOES` = constante utilizada para armazenar o valor relacionado a validacoes.
-    MODOS_INSERCAO, OPERACOES_MATEMATICAS, TEMAS, VALIDACOES,
+    MODOS_INSERCAO, OPERACOES_MATEMATICAS, RECURSOS_ESPECIAIS_COMPONENTES, TEMAS, VALIDACOES,
 
 # Fecha a estrutura iniciada nas linhas anteriores e conclui esta parte da instrução.
 # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
@@ -917,6 +921,10 @@ class AplicativoGeradorVisual(tk.Tk):
         # `exportar_codigo` = atributo, método ou recurso acessado com o nome `exportar_codigo`.
         # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
         arquivo.add_command(label="Exportar código Python...", command=self.exportar_codigo)
+
+        # Adiciona ao menu Arquivo a opção que transforma o projeto criado em um executável do Windows.
+        # `command=self.exportar_executavel` = chama a rotina responsável por gerar o arquivo .exe.
+        arquivo.add_command(label="Exportar executável .exe...", command=self.exportar_executavel)
 
         # Executa `arquivo.add_separator` com os argumentos informados para realizar a operação correspondente.
         # `arquivo` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a arquivo.
@@ -2949,6 +2957,13 @@ class AplicativoGeradorVisual(tk.Tk):
         # `6` = valor numérico utilizado para definir o espaçamento configurado pelo parâmetro `padx`.
         ttk.Button(barra_codigo, text="Exportar .py", command=self.exportar_codigo).pack(side="left", padx=6)
 
+        # Cria o botão que exporta o programa criado como um único arquivo executável do Windows.
+        # `text="Exportar .exe"` = texto exibido ao usuário.
+        # `command=self.exportar_executavel` = executa a rotina de empacotamento quando o botão for clicado.
+        # `side="left"` = mantém o botão imediatamente ao lado do botão de exportação para .py.
+        # `padx=(0, 6)` = acrescenta um pequeno espaço antes do próximo botão.
+        ttk.Button(barra_codigo, text="Exportar .exe", command=self.exportar_executavel).pack(side="left", padx=(0, 6))
+
         # Executa `ttk.Button` com os argumentos informados para realizar a operação correspondente.
         # `ttk` = módulo do Tkinter que disponibiliza componentes visuais temáticos.
         # `.` = acessa um atributo, método ou recurso pertencente ao objeto indicado antes do ponto.
@@ -3723,6 +3738,7 @@ class AplicativoGeradorVisual(tk.Tk):
         # `anchor` = parâmetro que define o ponto de ancoragem do componente.
         # `w` = texto literal utilizado nesta instrução.
         ttk.Label(area, text="Pedido para a IA", style="PanelTitle.TLabel").pack(anchor="w")
+        ttk.Button(area, text="Exemplos de Prompts", command=self._abrir_exemplos_prompts_ia).pack(anchor="e", pady=(0, 5))
 
         # Armazena ou associa em `self.txt_ia_prompt` o valor ou resultado definido nesta linha.
         # `self` = representa a própria instância da classe e permite acessar seus atributos e métodos.
@@ -3976,6 +3992,92 @@ class AplicativoGeradorVisual(tk.Tk):
     # `self` = representa a própria instância da classe e permite acessar seus atributos e métodos.
     # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
     # `:` = separa partes da instrução e, conforme o contexto, marca anotação de tipo, chave e valor ou início de bloco.
+    def _abrir_exemplos_prompts_ia(self):
+        prompts = [
+            "Crie o Projeto 31, um cronômetro com iniciar, pausar e zerar.",
+            "Crie o Projeto 32, um temporizador com iniciar, pausar e zerar.",
+            "Crie um gerador de senhas seguras com tamanho configurável e opção de símbolos.",
+            "Crie uma calculadora de idade completa a partir da data de nascimento.",
+            "Crie um sorteador de nomes usando uma lista de participantes.",
+            "Crie um gerador de números para sorteio.",
+            "Crie um quiz interativo com perguntas e respostas.",
+            "Crie o Projeto 41 com Progressbar e uma área Canvas onde eu possa desenhar com o mouse.",
+            "Crie uma lista com filtro, contador de itens e botão para exportar para Excel.",
+            "Crie um programa para exportar os itens de uma Listbox para Excel.",
+            "Crie um programa para exportar os dados de uma Treeview para Excel.",
+            "Crie o Projeto 45 para carregar uma planilha e criar rascunhos no Outlook com assunto, corpo e anexos.",
+            "Crie o Projeto 46 para quebrar uma planilha do Excel por uma coluna escolhida pelo usuário.",
+            "Crie o Projeto 47 para quebrar um arquivo com várias abas usando uma coluna comum.",
+            "Crie um gerenciador de Listbox que permita adicionar, excluir e limpar itens.",
+            "Crie uma lista de compras interativa com inclusão e exclusão de produtos.",
+            "Crie um gerador que coloque de 1 até 600 ou mais números em uma Listbox sem limite fixo.",
+            "Crie uma Treeview personalizada com fonte maior e cores próprias.",
+            "Crie um formulário com campos obrigatórios e um campo bloqueado para somente leitura.",
+            "Crie um contador de palavras, caracteres e linhas para textos grandes.",
+            "Crie um editor para localizar e substituir palavras em um texto.",
+            "Crie um editor de arquivo TXT com botões para abrir e salvar arquivos.",
+            "Crie uma calculadora de intervalo entre duas datas.",
+            "Crie um organizador de lista com ordenar A-Z, Z-A e remover duplicados.",
+            "Crie um importador de CSV que carregue os dados em uma Treeview.",
+            "Crie um programa para calcular quantidade, soma, média, menor e maior valor de uma lista numérica.",
+            "Crie um conversor de texto para maiúsculas, minúsculas e formato de título.",
+            "Crie um calendário mensal onde o usuário informa mês e ano.",
+            "Crie um analisador de força de senha que verifique tamanho, letras, números e símbolos.",
+            "Crie um sistema para uma escola com login, menu, Alunos, Cursos e Matrículas.",
+            "Crie um sistema para uma oficina com Clientes, Veículos e Ordens de Serviço.",
+            "Crie um sistema de clínica com Pacientes, Médicos e Consultas.",
+            "Crie um sistema para uma loja com Clientes, Produtos e Vendas.",
+            "Crie um sistema de biblioteca com Leitores, Livros e Empréstimos.",
+            "Crie um sistema de RH com Funcionários, Cargos e Férias.",
+            "Crie um cadastro de fornecedores com CNPJ, nome, telefone, e-mail, cidade e status.",
+            "Crie um sistema financeiro com descrição, tipo, categoria, valor, data, status e observações.",
+        ]
+
+        janela = tk.Toplevel(self)
+        janela.title("Exemplos de Prompts")
+        janela.geometry("900x620")
+        janela.minsize(720, 480)
+        janela.transient(self)
+
+        ttk.Label(
+            janela,
+            text="Selecione um exemplo. Você pode usar o texto como está ou editar antes de criar o projeto.",
+            wraplength=840,
+            justify="left",
+        ).pack(fill="x", padx=16, pady=(16, 10))
+
+        quadro = ttk.Frame(janela)
+        quadro.pack(fill="both", expand=True, padx=16, pady=(0, 10))
+        barra = ttk.Scrollbar(quadro, orient="vertical")
+        lista = tk.Listbox(quadro, yscrollcommand=barra.set, font=("Segoe UI", 10), activestyle="dotbox")
+        barra.configure(command=lista.yview)
+        lista.pack(side="left", fill="both", expand=True)
+        barra.pack(side="right", fill="y")
+
+        for indice, prompt in enumerate(prompts, 1):
+            lista.insert(tk.END, f"{indice:02d}. {prompt}")
+
+        def usar_prompt(evento=None):
+            selecao = lista.curselection()
+            if not selecao:
+                messagebox.showinfo("Exemplos de Prompts", "Selecione um prompt da lista.", parent=janela)
+                return
+            prompt = prompts[selecao[0]]
+            self.txt_ia_prompt.delete("1.0", tk.END)
+            self.txt_ia_prompt.insert("1.0", prompt)
+            janela.destroy()
+            self.txt_ia_prompt.focus_set()
+
+        lista.bind("<Double-Button-1>", usar_prompt)
+        if prompts:
+            lista.selection_set(0)
+            lista.activate(0)
+
+        rodape = ttk.Frame(janela)
+        rodape.pack(fill="x", padx=16, pady=(0, 16))
+        ttk.Button(rodape, text="Usar Prompt Selecionado", command=usar_prompt, style="Accent.TButton").pack(side="right")
+        ttk.Button(rodape, text="Fechar", command=janela.destroy).pack(side="right", padx=(0, 8))
+
     def _atualizar_texto_motor_ia(self):
 
         # Verifica a condição informada e executa o bloco seguinte somente quando ela for verdadeira.
@@ -5156,7 +5258,7 @@ class AplicativoGeradorVisual(tk.Tk):
             # `,` = separa argumentos, parâmetros, propriedades ou elementos desta estrutura.
             # `obrigatorio` = texto literal utilizado nesta instrução.
             # `BooleanVar` = função, método ou classe chamada para executar a operação relacionada a BooleanVar.
-            "validacao": tk.StringVar(value="Nenhuma"), "obrigatorio": tk.BooleanVar(),
+            "validacao": tk.StringVar(value="Nenhuma"), "obrigatorio": tk.BooleanVar(), "bloqueado": tk.BooleanVar(),
 
             # Fornece o texto literal utilizado como argumento, valor ou conteúdo da instrução iniciada nas linhas anteriores.
             # `operador` = texto literal utilizado nesta instrução.
@@ -5310,6 +5412,7 @@ class AplicativoGeradorVisual(tk.Tk):
         # Fecha a estrutura iniciada nas linhas anteriores e conclui esta parte da instrução.
         # `}` = fecha o dicionário, conjunto ou estrutura de compreensão.
         }
+        self.vars_prop["recurso_outlook"] = tk.StringVar()
 
         # Executa `self._adicionar_prop` com os argumentos informados para realizar a operação correspondente.
         # `self` = representa a própria instância da classe e permite acessar seus atributos e métodos.
@@ -5479,6 +5582,13 @@ class AplicativoGeradorVisual(tk.Tk):
         # Este método é utilizado para tratar a mudança da ação selecionada pelo usuário.
         # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
         self.combo_acao.bind("<<ComboboxSelected>>", self._acao_alterada)
+
+        self.combo_recurso_especial = self._adicionar_prop(
+            "recurso_outlook",
+            "Função especial do componente (projetos 45 a 47)",
+            "combo_readonly",
+            RECURSOS_ESPECIAIS_COMPONENTES,
+        )
 
         # Armazena ou associa em `self.frame_config_acao` o valor ou resultado definido nesta linha.
         self.frame_config_acao = ttk.LabelFrame(
@@ -6105,7 +6215,8 @@ class AplicativoGeradorVisual(tk.Tk):
         # `pady` = parâmetro que define o espaçamento vertical externo do componente.
         # `8` = valor numérico utilizado nesta linha para configurar, comparar, calcular ou representar a quantidade correspondente.
         # `12` = valor numérico utilizado nesta linha para configurar, comparar, calcular ou representar a quantidade correspondente.
-        ttk.Checkbutton(self.frame_props, text="Campo obrigatório", variable=self.vars_prop["obrigatorio"]).pack(anchor="w", pady=(8, 12))
+        ttk.Checkbutton(self.frame_props, text="Campo obrigatório", variable=self.vars_prop["obrigatorio"]).pack(anchor="w", pady=(8, 4))
+        ttk.Checkbutton(self.frame_props, text="Campo bloqueado / somente leitura", variable=self.vars_prop["bloqueado"]).pack(anchor="w", pady=(0, 12))
 
     # Define a rotina `_adicionar_prop`, responsável por executar a lógica relacionada a adicionar prop.
     # `def` = define uma nova função ou um novo método.
@@ -6347,6 +6458,41 @@ class AplicativoGeradorVisual(tk.Tk):
             ),
 
             # Fornece o texto literal utilizado como argumento, valor ou conteúdo da instrução iniciada nas linhas anteriores.
+            "Cronômetro: iniciar": "Escolha em Campo de resultado o campo que mostrará o tempo do cronômetro.",
+            "Cronômetro: pausar": "Escolha em Campo de resultado o mesmo campo usado para exibir o cronômetro.",
+            "Cronômetro: zerar": "Escolha em Campo de resultado o mesmo campo usado para exibir o cronômetro.",
+            "Temporizador: iniciar": "Use Campo 1 para os segundos e Campo de resultado para mostrar o tempo restante.",
+            "Temporizador: pausar": "Escolha em Campo de resultado o campo que mostra o tempo restante.",
+            "Temporizador: zerar": "Escolha em Campo de resultado o campo que mostra o tempo restante.",
+            "Gerar senha segura": "Use Campo 1 para o tamanho, Campo 2 para a opção de símbolos e Campo de resultado para a senha.",
+            "Calcular idade completa": "Use Campo 1 para a data de nascimento e Campo de resultado para a idade calculada.",
+            "Sortear nome": "Use Campo 1 para a Listbox de nomes e Campo de resultado para exibir o nome sorteado.",
+            "Gerar números de sorteio": "Use Campo 1 para a quantidade e Campo de resultado para a Listbox dos números gerados.",
+            "Testar barra de progresso": (
+                "Use Campo 1 para informar um valor de 0 a 100, Campo de resultado para a Progressbar "
+                "e Campo de resultado 2 para o Label que mostrará o percentual."
+            ),
+            "Limpar área de desenho": "Escolha em Campo de resultado o Canvas que deverá ser limpo.",
+            "Listbox: adicionar item": "Use Campo 1 para o texto que será incluído e Campo de resultado para a Listbox de destino.",
+            "Listbox: excluir item selecionado": "Escolha em Campo de resultado a Listbox da qual o item selecionado será excluído.",
+            "Listbox: alterar item selecionado": "Use Campo 1 para o novo texto e Campo de resultado para a Listbox. O item selecionado será substituído pelo valor informado.",
+            "Listbox: limpar lista": "Escolha em Campo de resultado a Listbox que deverá ser esvaziada.",
+            "Listbox: gerar sequência numérica": "Use Campo 1 para a quantidade e Campo de resultado para a Listbox. A lista será criada de 1 até a quantidade informada.",
+            "Texto: contar palavras e caracteres": "Use Campo 1 para o texto e Campo de resultado para mostrar a análise.",
+            "Texto: localizar e substituir": "Use Campo 1 para o texto, Campo 2 para localizar, Campo 3 para substituir, Campo de resultado para o texto final e Campo de resultado 2 para a quantidade.",
+            "Arquivo TXT: abrir": "Escolha em Campo de resultado o Text/ScrolledText que receberá o arquivo e, opcionalmente, Campo de resultado 2 para mostrar o caminho.",
+            "Arquivo TXT: salvar": "Use Campo 1 para o Text/ScrolledText e Campo 2 para um campo que contenha o caminho atual, se houver.",
+            "Datas: calcular intervalo": "Use Campo 1 para a data inicial, Campo 2 para a data final e Campo de resultado para mostrar o intervalo.",
+            "Listbox: ordenar A-Z": "Escolha em Campo de resultado a Listbox que deverá ser ordenada de A a Z.",
+            "Listbox: ordenar Z-A": "Escolha em Campo de resultado a Listbox que deverá ser ordenada de Z a A.",
+            "Listbox: remover duplicados": "Escolha em Campo de resultado a Listbox da qual os itens repetidos serão removidos.",
+            "CSV: importar para Treeview": "Escolha em Campo de resultado a Treeview que receberá o CSV e, opcionalmente, Campo de resultado 2 para exibir o status.",
+            "Lista numérica: calcular estatísticas": "Use Campo 1 para os números e Campo de resultado para quantidade, soma, média, mediana, menor e maior.",
+            "Texto: converter para maiúsculas": "Use Campo 1 para o texto de origem e Campo de resultado para o texto convertido.",
+            "Texto: converter para minúsculas": "Use Campo 1 para o texto de origem e Campo de resultado para o texto convertido.",
+            "Texto: converter para título": "Use Campo 1 para o texto de origem e Campo de resultado para o texto convertido.",
+            "Calendário: gerar mês": "Use Campo 1 para o mês, Campo 2 para o ano e Campo de resultado para o calendário.",
+            "Senha: analisar força": "Use Campo 1 para a senha e Campo de resultado para mostrar a análise dos critérios.",
             "Exportar dados para Excel": (
                 "Selecione uma Treeview ou uma Listbox nos Campos da ação. "
                 "O arquivo .xlsx será criado com os itens atualmente exibidos; "
@@ -8765,7 +8911,7 @@ class AplicativoGeradorVisual(tk.Tk):
             # `and` = operador lógico E, que exige que as condições relacionadas sejam verdadeiras.
             # `texto` = atributo, método ou recurso acessado com o nome `texto`.
             # `:` = separa partes da instrução e, conforme o contexto, marca anotação de tipo, chave e valor ou início de bloco.
-            if comp.tipo == "Filtro" and comp.texto:
+            if comp.texto:
 
                 # Executa `entry.insert` com os argumentos informados para realizar a operação correspondente.
                 # `entry` = identificador relacionado a um campo de entrada de dados, associado a entry.
@@ -9141,7 +9287,7 @@ class AplicativoGeradorVisual(tk.Tk):
 
             # Retorna o resultado desta linha para o ponto do programa que chamou a rotina atual.
             # `return` = encerra a rotina atual e devolve o valor especificado.
-            # `ttk` = módulo do Tkinter que disponibiliza componentes visuais temáticos.
+            # `tk` = apelido utilizado para acessar os componentes clássicos da biblioteca Tkinter.
             # `.` = acessa um atributo, método ou recurso pertencente ao objeto indicado antes do ponto.
             # `Scale` = função, método ou classe chamada para executar a operação relacionada a Scale.
             # `(` = abre a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
@@ -9154,7 +9300,15 @@ class AplicativoGeradorVisual(tk.Tk):
             # `to` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a to.
             # `100` = valor numérico associado a `to` nesta instrução.
             # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
-            return ttk.Scale(self.superficie, from_=0, to=100)
+            return tk.Scale(
+                self.superficie,
+                from_=0,
+                to=100,
+                orient="horizontal",
+                showvalue=True,
+                resolution=1,
+                highlightthickness=0,
+            )
 
         # Verifica a condição informada e executa o bloco seguinte somente quando ela for verdadeira.
         # `if` = inicia uma estrutura condicional executada quando a condição for verdadeira.
@@ -9646,7 +9800,7 @@ class AplicativoGeradorVisual(tk.Tk):
                 # `else` = inicia o bloco executado quando as condições anteriores não forem atendidas.
                 # texto vazio = representa uma string sem caracteres.
                 # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
-                var.set(False if chave in {"obrigatorio", "negrito", "italico", "sublinhado"} else "")
+                var.set(False if chave in {"obrigatorio", "bloqueado", "negrito", "italico", "sublinhado"} else "")
 
             # Executa `self._desenhar_borda_selecao` com os argumentos informados para realizar a operação correspondente.
             # `self` = representa a própria instância da classe e permite acessar seus atributos e métodos.
@@ -9759,6 +9913,7 @@ class AplicativoGeradorVisual(tk.Tk):
             # `mensagem` = texto literal utilizado nesta instrução.
             # `mensagem` = atributo, método ou recurso acessado com o nome `mensagem`.
             "acao": comp.acao or "Nenhuma", "tela_destino": comp.tela_destino, "mensagem": comp.mensagem,
+            "recurso_outlook": getattr(comp, "recurso_outlook", ""),
 
             # Fornece o texto literal utilizado como argumento, valor ou conteúdo da instrução iniciada nas linhas anteriores.
             # `mascara` = texto literal utilizado nesta instrução.
@@ -10011,6 +10166,7 @@ class AplicativoGeradorVisual(tk.Tk):
         # `obrigatorio` = atributo, método ou recurso acessado com o nome `obrigatorio`.
         # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
         self.vars_prop["obrigatorio"].set(bool(comp.obrigatorio))
+        self.vars_prop["bloqueado"].set(bool(getattr(comp, "bloqueado", False)))
 
         # Armazena ou associa em `campos` o valor ou resultado definido nesta linha.
         # `campos` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a campos.
@@ -10088,6 +10244,8 @@ class AplicativoGeradorVisual(tk.Tk):
                 # `Combobox` = texto literal utilizado nesta instrução.
                 # `Listbox` = texto literal utilizado nesta instrução.
                 "Entry", "Text", "Combobox", "Listbox", "Treeview",
+                "EmailEntry", "PasswordEntry", "DateEntry", "TimeEntry",
+                "ScrolledText", "Menubutton", "ToggleButton",
 
                 # Fornece o texto literal utilizado como argumento, valor ou conteúdo da instrução iniciada nas linhas anteriores.
                 # `Checkbutton` = texto literal utilizado nesta instrução.
@@ -10131,6 +10289,9 @@ class AplicativoGeradorVisual(tk.Tk):
                 # `Spinbox` = texto literal utilizado nesta instrução.
                 # `Scale` = texto literal utilizado nesta instrução.
                 "Entry", "Text", "Combobox", "Listbox", "Spinbox", "Scale",
+                "EmailEntry", "PasswordEntry", "DateEntry", "TimeEntry",
+                "ScrolledText", "Menubutton", "ToggleButton", "Treeview",
+                "Progressbar", "Canvas", "Label",
 
             # Fecha a estrutura iniciada nas linhas anteriores e conclui esta parte da instrução.
             # `}` = fecha o dicionário, conjunto ou estrutura de compreensão.
@@ -10917,6 +11078,11 @@ class AplicativoGeradorVisual(tk.Tk):
         # `or` = operador lógico OU, que aceita que pelo menos uma das condições seja verdadeira.
         # `Nenhuma` = texto literal utilizado nesta instrução.
         comp.acao = self.vars_prop["acao"].get().strip() or "Nenhuma"
+        comp.recurso_outlook = self.vars_prop["recurso_outlook"].get().strip()
+        recurso_da_acao = ACOES_RECURSOS_ESPECIAIS.get(comp.acao, "")
+        if recurso_da_acao:
+            comp.recurso_outlook = recurso_da_acao
+            self.vars_prop["recurso_outlook"].set(recurso_da_acao)
 
         # Verifica a condição informada e executa o bloco seguinte somente quando ela for verdadeira.
         # `if` = inicia uma estrutura condicional executada quando a condição for verdadeira.
@@ -11298,6 +11464,7 @@ class AplicativoGeradorVisual(tk.Tk):
         # `get` = função, método ou classe chamada para executar a operação relacionada a get.
         # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
         comp.obrigatorio = bool(self.vars_prop["obrigatorio"].get())
+        comp.bloqueado = bool(self.vars_prop["bloqueado"].get())
 
         # Verifica a condição informada e executa o bloco seguinte somente quando ela for verdadeira.
         # `if` = inicia uma estrutura condicional executada quando a condição for verdadeira.
@@ -14312,7 +14479,6 @@ class AplicativoGeradorVisual(tk.Tk):
         # `var_status` = variável de controle utilizada para armazenar o valor relacionado a var status.
         # `set` = função ou tipo utilizado para criar ou representar um conjunto.
         # `(` = abre a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
-        # `Código Python atualizado.` = texto literal utilizado nesta instrução.
         # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
         self.var_status.set("Código Python atualizado.")
 
@@ -14930,6 +15096,374 @@ class AplicativoGeradorVisual(tk.Tk):
         # `Código copiado para a área de transferência.` = texto literal utilizado nesta instrução.
         # `)` = fecha a lista de argumentos, parâmetros, condição ou agrupamento correspondente.
         self.var_status.set("Código copiado para a área de transferência.")
+
+    # Define a rotina responsável por gerar um arquivo executável do projeto criado no Designer Visual.
+    # O executável é produzido a partir do mesmo código exibido na aba Código, evitando diferenças entre o .py e o .exe.
+    def exportar_executavel(self):
+
+        # Verifica se o recurso está sendo utilizado no Windows, sistema para o qual o arquivo .exe será criado.
+        if os.name != "nt":
+
+            # Informa que a criação de um executável do Windows deve ser executada no próprio Windows.
+            messagebox.showwarning(
+                "Exportar executável",
+                "A criação do arquivo .exe deve ser feita no Windows. Abra este Gerador Visual no Windows e use novamente o botão Exportar .exe.",
+            )
+
+            # Encerra a rotina porque o PyInstaller não faz compilação cruzada para Windows a partir de outro sistema.
+            return
+
+        # Impede que duas exportações sejam iniciadas ao mesmo tempo por cliques repetidos no botão.
+        if getattr(self, "_exportacao_exe_em_andamento", False):
+
+            # Informa que já existe uma geração de executável em andamento.
+            messagebox.showinfo("Exportar executável", "Já existe uma exportação de executável em andamento.")
+
+            # Encerra a rotina atual sem iniciar outro processo.
+            return
+
+        # Atualiza o código para garantir que o executável utilize exatamente o estado atual do projeto visual.
+        codigo = self.atualizar_codigo()
+
+        # Abre a janela para o usuário escolher onde deseja salvar o arquivo executável.
+        caminho = filedialog.asksaveasfilename(
+
+            # Define o título exibido na janela de salvamento.
+            title="Exportar executável do projeto",
+
+            # Acrescenta automaticamente a extensão .exe quando ela não for informada.
+            defaultextension=".exe",
+
+            # Mostra primeiro o tipo de arquivo executável do Windows.
+            filetypes=[("Aplicativo do Windows", "*.exe"), ("Todos os arquivos", "*.*")],
+        )
+
+        # Verifica se o usuário cancelou a janela de salvamento.
+        if not caminho:
+
+            # Encerra a rotina sem criar nenhum arquivo.
+            return
+
+        # Garante que o nome escolhido termine com a extensão .exe.
+        if not caminho.lower().endswith(".exe"):
+
+            # Acrescenta a extensão esperada pelo Windows.
+            caminho += ".exe"
+
+        # Cria a lista de dependências necessárias para montar o executável.
+        dependencias = [("PyInstaller", "pyinstaller")]
+
+        # Verifica se o código gerado utiliza a função de exportação para planilhas Excel.
+        if "from openpyxl import" in codigo or "import openpyxl" in codigo:
+
+            # Inclui o openpyxl para que a exportação para Excel continue funcionando dentro do executável.
+            dependencias.append(("openpyxl", "openpyxl"))
+
+        # Verifica se o código gerado utiliza automação do Outlook no Windows.
+        if "win32com.client" in codigo:
+
+            # Inclui o pywin32 para permitir a criação de rascunhos no Outlook.
+            dependencias.append(("win32com.client", "pywin32"))
+
+        # Cria a lista que receberá somente as dependências que ainda não estiverem instaladas.
+        faltando = []
+
+        # Percorre cada dependência necessária para o executável.
+        for modulo, pacote in dependencias:
+
+            # Prepara as opções usadas para evitar a abertura de uma janela de console no Windows.
+            flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+
+            # Executa um teste simples de importação usando o mesmo Python que está executando o Gerador Visual.
+            teste = subprocess.run(
+
+                # Tenta importar o módulo e encerra imediatamente.
+                [sys.executable, "-c", f"import {modulo}"],
+
+                # Não mostra a saída normal do teste na tela.
+                stdout=subprocess.DEVNULL,
+
+                # Não mostra mensagens de erro do teste na tela.
+                stderr=subprocess.DEVNULL,
+
+                # Não cria uma janela adicional de Prompt de Comando no Windows.
+                creationflags=flags,
+            )
+
+            # Verifica se a importação não foi concluída com sucesso.
+            if teste.returncode != 0:
+
+                # Guarda o nome do pacote que deverá ser instalado.
+                faltando.append(pacote)
+
+        # Verifica se alguma biblioteca necessária ainda não está instalada.
+        if faltando:
+
+            # Monta uma descrição amigável das bibliotecas ausentes.
+            nomes_faltando = ", ".join(faltando)
+
+            # Pergunta se o usuário deseja que o próprio Gerador Visual faça a instalação necessária.
+            instalar = messagebox.askyesno(
+                "Bibliotecas necessárias",
+                "Para criar o executável com todos os recursos deste projeto, "
+                f"é necessário instalar: {nomes_faltando}.\n\n"
+                "Deseja instalar automaticamente agora?",
+            )
+
+            # Verifica se o usuário escolheu não instalar as dependências.
+            if not instalar:
+
+                # Informa o comando que poderá ser utilizado manualmente posteriormente.
+                messagebox.showinfo(
+                    "Exportação cancelada",
+                    "A criação do executável foi cancelada.\n\n"
+                    f"Quando desejar, instale com:\n{sys.executable} -m pip install {' '.join(faltando)}",
+                )
+
+                # Encerra a rotina sem iniciar o PyInstaller.
+                return
+
+        # Marca que existe uma exportação em andamento para bloquear novos cliques até o término.
+        self._exportacao_exe_em_andamento = True
+
+        # Mostra na barra de status que o processo de empacotamento começou.
+        self.var_status.set("Gerando executável... aguarde a conclusão.")
+
+        # Define a rotina interna que será executada em segundo plano para não travar a interface gráfica.
+        def gerar_em_segundo_plano():
+
+            # Inicializa a variável que armazenará a pasta temporária criada para o processo.
+            pasta_temporaria = ""
+
+            # Inicia o bloco protegido que trata instalação, geração e cópia do executável.
+            try:
+
+                # Prepara as opções para que processos auxiliares não abram janelas de console no Windows.
+                flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+
+                # Verifica novamente se existem bibliotecas que precisam ser instaladas.
+                if faltando:
+
+                    # Atualiza a barra de status por meio da thread principal do Tkinter.
+                    self.after(0, lambda: self.var_status.set("Instalando bibliotecas necessárias para gerar o executável..."))
+
+                    # Executa o pip utilizando o mesmo interpretador Python do Gerador Visual.
+                    instalacao = subprocess.run(
+
+                        # Instala todos os pacotes necessários em uma única chamada.
+                        [sys.executable, "-m", "pip", "install", *faltando],
+
+                        # Captura a saída normal para permitir diagnóstico caso aconteça algum erro.
+                        stdout=subprocess.PIPE,
+
+                        # Captura também a saída de erro.
+                        stderr=subprocess.STDOUT,
+
+                        # Converte a saída do processo diretamente para texto.
+                        text=True,
+
+                        # Usa UTF-8 sempre que possível.
+                        encoding="utf-8",
+
+                        # Substitui caracteres inválidos em vez de interromper a leitura do resultado.
+                        errors="replace",
+
+                        # Evita a abertura de uma janela de Prompt de Comando no Windows.
+                        creationflags=flags,
+                    )
+
+                    # Verifica se o pip não conseguiu instalar alguma dependência.
+                    if instalacao.returncode != 0:
+
+                        # Obtém a saída gerada pelo pip para ajudar a identificar o motivo da falha.
+                        detalhes = (instalacao.stdout or "Não foi possível instalar as bibliotecas necessárias.").strip()
+
+                        # Limita a mensagem exibida para evitar uma caixa de diálogo excessivamente grande.
+                        detalhes = detalhes[-5000:]
+
+                        # Gera uma exceção tratável com os detalhes da instalação.
+                        raise RuntimeError("Falha ao instalar as bibliotecas necessárias.\n\n" + detalhes)
+
+                # Cria uma pasta temporária exclusiva para os arquivos usados pelo PyInstaller.
+                pasta_temporaria = tempfile.mkdtemp(prefix="gerador_visual_exe_")
+
+                # Define o caminho do arquivo Python temporário que receberá o código atual do projeto.
+                arquivo_python = os.path.join(pasta_temporaria, "projeto_gerado.py")
+
+                # Abre o arquivo temporário em modo de escrita com codificação UTF-8.
+                with open(arquivo_python, "w", encoding="utf-8") as arquivo:
+
+                    # Grava exatamente o código atual mostrado na aba Código.
+                    arquivo.write(codigo)
+
+                # Define uma pasta temporária para receber o executável produzido pelo PyInstaller.
+                pasta_saida = os.path.join(pasta_temporaria, "dist")
+
+                # Define a pasta temporária utilizada pelos arquivos intermediários da compilação.
+                pasta_build = os.path.join(pasta_temporaria, "build")
+
+                # Atualiza a barra de status informando a etapa atual.
+                self.after(0, lambda: self.var_status.set("Montando o arquivo .exe do projeto..."))
+
+                # Monta o comando utilizado para transformar o código Python em um único executável gráfico.
+                comando = [
+
+                    # Utiliza o mesmo Python que está executando o Gerador Visual.
+                    sys.executable,
+
+                    # Executa o PyInstaller como módulo do Python.
+                    "-m",
+                    "PyInstaller",
+
+                    # Substitui arquivos anteriores sem solicitar confirmação no processo temporário.
+                    "--noconfirm",
+
+                    # Limpa o cache de empacotamentos anteriores.
+                    "--clean",
+
+                    # Gera um único arquivo executável.
+                    "--onefile",
+
+                    # Não abre uma janela de console junto com o programa Tkinter gerado.
+                    "--windowed",
+
+                    # Define um nome interno simples para o executável temporário.
+                    "--name",
+                    "projeto_gerado",
+
+                    # Define a pasta que receberá o executável temporário.
+                    "--distpath",
+                    pasta_saida,
+
+                    # Define a pasta dos arquivos intermediários do PyInstaller.
+                    "--workpath",
+                    pasta_build,
+
+                    # Mantém o arquivo .spec dentro da própria pasta temporária.
+                    "--specpath",
+                    pasta_temporaria,
+
+                ]
+
+                # Quando o projeto usa o Outlook, inclui explicitamente os módulos COM necessários no executável.
+                if "win32com.client" in codigo:
+                    comando.extend([
+                        "--hidden-import=win32com.client",
+                        "--hidden-import=win32com.client.gencache",
+                        "--hidden-import=pythoncom",
+                        "--hidden-import=pywintypes",
+                    ])
+
+                # Informa qual arquivo Python deverá ser transformado em executável.
+                comando.append(arquivo_python)
+
+                # Executa o PyInstaller e aguarda a conclusão do empacotamento.
+                processo = subprocess.run(
+
+                    # Usa a lista de argumentos preparada anteriormente.
+                    comando,
+
+                    # Captura toda a saída para apresentar detalhes caso ocorra algum problema.
+                    stdout=subprocess.PIPE,
+
+                    # Junta mensagens de erro com a saída normal.
+                    stderr=subprocess.STDOUT,
+
+                    # Solicita o retorno da saída já convertida para texto.
+                    text=True,
+
+                    # Usa UTF-8 na leitura das mensagens do PyInstaller.
+                    encoding="utf-8",
+
+                    # Substitui caracteres que não possam ser convertidos corretamente.
+                    errors="replace",
+
+                    # Evita janelas extras de console durante o processo no Windows.
+                    creationflags=flags,
+                )
+
+                # Verifica se o PyInstaller terminou com código de erro.
+                if processo.returncode != 0:
+
+                    # Obtém o final do relatório para mostrar a parte mais relevante do erro.
+                    detalhes = (processo.stdout or "O PyInstaller não informou detalhes adicionais.").strip()[-6000:]
+
+                    # Interrompe o fluxo normal e direciona o problema para o tratamento abaixo.
+                    raise RuntimeError("Não foi possível criar o executável.\n\nDetalhes:\n" + detalhes)
+
+                # Define o nome esperado do executável quando o Gerador Visual estiver sendo utilizado no Windows.
+                executavel_temporario = os.path.join(pasta_saida, "projeto_gerado.exe")
+
+                # Verifica o nome sem extensão também, permitindo testes do recurso em outros sistemas operacionais.
+                if not os.path.exists(executavel_temporario):
+
+                    # Usa o nome sem .exe somente como alternativa de localização do arquivo produzido.
+                    executavel_temporario = os.path.join(pasta_saida, "projeto_gerado")
+
+                # Confirma que o arquivo realmente foi criado antes de copiar para o destino escolhido.
+                if not os.path.exists(executavel_temporario):
+
+                    # Gera um erro claro caso o processo termine sem produzir o arquivo esperado.
+                    raise RuntimeError("O PyInstaller terminou, mas o arquivo executável não foi encontrado.")
+
+                # Copia o executável gerado para o nome e pasta escolhidos pelo usuário.
+                shutil.copy2(executavel_temporario, caminho)
+
+                # Define a rotina que será executada na thread principal após o sucesso da exportação.
+                def concluir_sucesso():
+
+                    # Libera o controle para permitir uma nova exportação posteriormente.
+                    self._exportacao_exe_em_andamento = False
+
+                    # Mostra o caminho final na barra de status.
+                    self.var_status.set(f"Executável exportado: {caminho}")
+
+                    # Informa ao usuário que o arquivo está pronto para ser executado no Windows.
+                    messagebox.showinfo(
+                        "Executável criado",
+                        "O executável do projeto foi criado com sucesso.\n\n"
+                        f"Arquivo:\n{caminho}\n\n"
+                        "O programa pode ser aberto diretamente pelo arquivo .exe, sem precisar abrir o código .py.",
+                    )
+
+                # Agenda a conclusão visual para a thread principal do Tkinter.
+                self.after(0, concluir_sucesso)
+
+            # Captura qualquer erro ocorrido na instalação ou na criação do executável.
+            except Exception as erro:
+
+                # Converte o erro em texto antes de sair do bloco except.
+                mensagem_erro = str(erro)
+
+                # Define a rotina que mostrará o erro com segurança na thread principal.
+                def concluir_erro():
+
+                    # Libera o controle para uma nova tentativa de exportação.
+                    self._exportacao_exe_em_andamento = False
+
+                    # Atualiza a barra de status indicando que a operação não foi concluída.
+                    self.var_status.set("Não foi possível gerar o executável.")
+
+                    # Exibe os detalhes disponíveis para facilitar a correção do problema.
+                    messagebox.showerror("Erro ao exportar executável", mensagem_erro)
+
+                # Agenda a mensagem de erro para a thread principal do Tkinter.
+                self.after(0, concluir_erro)
+
+            # Executa este bloco independentemente de sucesso ou erro.
+            finally:
+
+                # Verifica se a pasta temporária chegou a ser criada.
+                if pasta_temporaria:
+
+                    # Remove os arquivos intermediários do PyInstaller para não deixar lixo no computador.
+                    shutil.rmtree(pasta_temporaria, ignore_errors=True)
+
+        # Cria uma thread separada para executar as tarefas demoradas sem congelar a janela do Gerador Visual.
+        thread = threading.Thread(target=gerar_em_segundo_plano, daemon=True)
+
+        # Inicia a geração do executável em segundo plano.
+        thread.start()
 
     # Define a rotina `exportar_codigo`, responsável por executar a lógica relacionada a exportar codigo.
     # `def` = define uma nova função ou um novo método.

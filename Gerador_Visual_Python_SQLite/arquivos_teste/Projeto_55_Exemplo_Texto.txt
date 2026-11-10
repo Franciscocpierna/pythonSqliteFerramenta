@@ -1,0 +1,16 @@
+ARQUIVO DE TESTE PARA O EDITOR TXT
+
+Este arquivo pode ser usado para testar o Projeto 55 - Editor de Arquivo TXT.
+
+Python é uma linguagem muito utilizada em automação, análise de dados e desenvolvimento de sistemas. Python também pode ser utilizada com Tkinter para criar interfaces gráficas.
+
+Você pode abrir este arquivo no programa, alterar qualquer frase e depois salvar. Também pode usar este conteúdo para testar os projetos de contagem de palavras e de localizar e substituir texto.
+
+Sugestões de teste:
+1. Troque a palavra Python por Tkinter.
+2. Acrescente uma nova linha ao final do arquivo.
+3. Apague um parágrafo e salve novamente.
+4. Conte quantas palavras e caracteres existem no texto.
+5. Salve uma cópia com outro nome.
+
+Fim do arquivo de teste.

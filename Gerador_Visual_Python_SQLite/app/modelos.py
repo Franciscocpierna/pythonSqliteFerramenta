@@ -406,6 +406,12 @@ class Componente:
     # `False` = representa o valor lógico falso.
     obrigatorio: bool = False
 
+    # Define se o campo deve permanecer somente para leitura durante a execução.
+    bloqueado: bool = False
+
+    # Identifica recursos internos usados apenas por projetos especiais do gerador.
+    recurso_outlook: str = ""
+
     # Declara `id` com anotação de tipo e armazena o valor definido nesta linha.
     # `id` = identificador utilizado nesta linha para representar ou acessar o valor relacionado a id.
     # `:` = separa partes da instrução e, conforme o contexto, marca anotação de tipo, chave e valor ou início de bloco.
